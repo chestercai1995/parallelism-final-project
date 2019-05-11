@@ -2,23 +2,23 @@
 #include <signal.h>
 #include <sys/time.h>
 
-typedef void (*sighandler_t)(int);
 
-foo(int theint)
+
+void *foo(int theint)
 {
-	printf("I just got the SIGALRM signal\n");
+	printf("I just got the SIGPROF signal\n");
 }
 
 main()
 {
 	struct timeval my_value={1,0};
-	struct timeval my_interval={1,0};
+	struct timeval my_interval={0,100000};
 	struct itimerval my_timer={my_interval,my_value};
 	
-	setitimer(ITIMER_REAL, &my_timer, 0);
+	signal(SIGPROF, (__sighandler_t) foo);
+	setitimer(ITIMER_PROF, &my_timer, 0);
 	
 	int i;
-	signal(SIGALRM, (sighandler_t) foo);
 
 	while(1);
 }
