@@ -1,0 +1,2 @@
+#Check all processes CPU usage
+ps -A -L -o pid,tid,psr,pcpu
