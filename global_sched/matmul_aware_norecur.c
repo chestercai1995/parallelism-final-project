@@ -20,7 +20,6 @@ void matmul_aware() {
   int ii, jj, kk;
   int iii, jjj, kkk;
   int iiii=0, jjjj=0, kkkk=0;
-  int iiiib = 0, jjjjb = 0;
   float sum;
   int kb;
   int kkb = 0;
@@ -336,7 +335,6 @@ int main(int argc, char *argv[]) {
 	  // think of this as a library where A and B are
 	  // inputs in row-major format, and C is an output
 	  // in row-major.
-	  float **D; 
 	  //flip B
 	  for(i = 0; i < P; i++){
 		for(j = 0; j < M; j++){

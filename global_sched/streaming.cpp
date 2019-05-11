@@ -1,9 +1,32 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <sys/time.h>
+
+#include "shm.h"
+#include "stats.h"
 
 //Global array; 400MB
 #define array_size 100000000
+
+
+void * timer_interrupt(int intr)
+{
+	printf("I just got the SIGPROF signal\n");
+	return NULL;
+}
+
+void setup_timer()
+{
+	struct timeval value = {1, 0};
+	struct timeval interval = {0, RECORD_STAT_QUANTUM};
+	struct itimerval timer = {interval, value};
+	
+	signal(SIGPROF, (__sighandler_t) timer_interrupt);
+	setitimer(ITIMER_PROF, &timer, 0);
+	return;
+}
 
 int main(int argc, char *argv[])
 {
@@ -11,6 +34,9 @@ int main(int argc, char *argv[])
 		printf("Agrument for multiples of runtime needed\n");
 		return 1;
 	}
+
+	setup_timer();
+
 	int rt_mul = atoi(argv[1]);
 
 	int rep_count = 10*rt_mul;
@@ -45,7 +71,19 @@ int main(int argc, char *argv[])
 
 		//Termination
 		delete[] global_array;
+
 	}
+	char * filename = (char*) "bin/streaming";
+	int shmid;
+	int *shm_ptr = (int *) get_shared_ptr(filename, sizeof(int)*4, SHM_RDONLY, &shmid);
+
+	printf("Reading from SHM\n");
+	printf("%d, %d, %d, %d\n", shm_ptr[0], shm_ptr[1], shm_ptr[2], shm_ptr[3]);
+
+	printf("Done reading\n");
+	detach_shared_mem(shm_ptr);
+	destroy_shared_mem(&shmid);
+		
 
 	return 0;
 	
