@@ -53,10 +53,8 @@
 # define INLINE
 #endif
 
-#include "stdio.h"
-#include "stdlib.h"
 #include "shm.h"
-#include "stats.h"
+#include "sched.h"
 
 
 typedef int              cmp_t(const void *, const void *);
@@ -215,25 +213,6 @@ int int32_compare (const void *A, const void *B) {
   return A_data < B_data? -1 : (A_data == B_data)? 0 : 1;
 }
 
-void * timer_interrupt(int intr)
-{
-	printf("Spec-sort interrupt\n");
-	return NULL;
-}
-
-void setup_timer()
-{
-	struct timeval value = {1, 0};
-	struct timeval interval = {0, RECORD_STAT_QUANTUM};
-	struct itimerval timer = {interval, value};
-	
-	signal(SIGPROF, (__sighandler_t) timer_interrupt);
-	setitimer(ITIMER_PROF, &timer, 0);
-	return;
-}
-
-
-
 int main (int argc, char *argv[]) {
 
 
@@ -245,6 +224,7 @@ int main (int argc, char *argv[]) {
 
   stats = (struct stats_struct *) calloc(1, sizeof(struct stats_struct));
   setup_timer();
+  setup_papi();
 
   int rep_count = 1500*rt_mul;
   srand(42);
@@ -268,6 +248,7 @@ int main (int argc, char *argv[]) {
   }
   free(A);
 
+  PAPI_shutdown();
   return 0;
   //######################
 
