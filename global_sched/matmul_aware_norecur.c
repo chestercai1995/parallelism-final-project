@@ -1,20 +1,41 @@
 #include <stdlib.h>
 #include <stdio.h>
-//#include <config.h>
+#include "shm.h"
+#include "stats.h"
+
+struct stats_struct *stats;
+
 #define BSIZE1 2 
 #define BSIZE2 16
 #define BSIZE3 32
+
+
 float** A;
 float** B;
 float** C;
-//#define M 4096 
-//#define N 4096 
-//#define P 4096 
 int M = 512;
 int N = 512;
 int P = 512;
-//void matmul_ijk(int i0, int i1, int j0, int j1, int k0, int k1){
-//}
+
+
+void * timer_interrupt(int intr)
+{
+	printf("Matmul Interrupt\n");
+	return NULL;
+}
+
+void setup_timer()
+{
+	struct timeval value = {1, 0};
+	struct timeval interval = {0, RECORD_STAT_QUANTUM};
+	struct itimerval timer = {interval, value};
+	
+	signal(SIGPROF, (__sighandler_t) timer_interrupt);
+	setitimer(ITIMER_PROF, &timer, 0);
+	return;
+}
+
+
 void matmul_aware() {
   int i, j, k;
   int ii, jj, kk;
@@ -313,7 +334,12 @@ int main(int argc, char *argv[]) {
 		printf("Agrument for multiples of runtime needed\n");
 		return 1;
 	}
-	int rt_mul = atoi(argv[1]);
+
+	stats = (struct stats_struct *) calloc(1, sizeof(struct stats_struct));
+
+  setup_timer();
+	
+  int rt_mul = atoi(argv[1]);
 
   create_matrix(&A, M, P);
   create_matrix(&B, P, N);

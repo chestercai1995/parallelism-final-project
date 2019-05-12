@@ -1,7 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "shm.h"
+#include "stats.h"
+
 #define computation_loops 1000000
+
+stats_struct *stats;
+
+void * timer_interrupt(int intr)
+{
+	printf("FP interrupt\n");
+	return NULL;
+}
+
+void setup_timer()
+{
+	struct timeval value = {1, 0};
+	struct timeval interval = {0, RECORD_STAT_QUANTUM};
+	struct itimerval timer = {interval, value};
+	
+	signal(SIGPROF, (__sighandler_t) timer_interrupt);
+	setitimer(ITIMER_PROF, &timer, 0);
+	return;
+}
 
 inline double fRand(double fMin, double fMax)
 {
@@ -37,6 +59,10 @@ int main(int argc, char* argv[])
 		printf("Agrument for multiples of runtime needed\n");
 		return 1;
 	}
+	stats = (stats_struct *) calloc(1, sizeof(stats_struct));
+	
+	setup_timer();
+	
 	int rt_mul = atoi(argv[1]);
 	
 	int rep_count = 100*rt_mul;

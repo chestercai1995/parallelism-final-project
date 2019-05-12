@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 {
 	if(argc < 2)
 	{
-		printf("global_scheduler [program 1] [number of instances] [program 2] number of instances] ... \n");
+		printf("global_scheduler [program 1] [iterations] [program 2] [iterations] ... \n");
 		exit(1);
 	}
 	
@@ -41,23 +41,24 @@ int main(int argc, char *argv[])
 
 	num_programs = num_programs/2;
 	
+	int shmid;
+	int *shm_ptr = (int *) get_shared_ptr(argv[1], sizeof(int)*4, SHM_W, &shmid);
+
+	printf("Writing to SHM\n");
+	shm_ptr[0] = 10;
+	shm_ptr[1] = 20;
+	shm_ptr[2] = 30;
+	shm_ptr[3] = 40;
+
+	printf("Done writing\n");
+	fflush(stdout);
+	detach_shared_mem(shm_ptr);	
 
 	//Launch all programs
 	int pid = 0;
-	for(int i=0; i<1; i++)
+	int i = 0;
+	for(i=0; i<num_programs; i++)
 	{
-		int shmid;
-		int *shm_ptr = (int *) get_shared_ptr(argv[1], sizeof(int)*4, SHM_W, &shmid);
-
-		printf("Writing to SHM\n");
-		shm_ptr[0] = 10;
-		shm_ptr[1] = 20;
-		shm_ptr[2] = 30;
-		shm_ptr[3] = 40;
-
-		printf("Done writing\n");
-		fflush(stdout);
-		detach_shared_mem(shm_ptr);	
 		pid = fork();
 		if(pid==0) break;
 		child_pids[i] = pid;
@@ -66,9 +67,10 @@ int main(int argc, char *argv[])
 	
 	if(pid == 0) 
 	{
-		printf("Child\n");
-		char *child_argv[] = {argv[1], "1", NULL};
-		int ret = execv(argv[1], child_argv);
+		printf("Child %d\n", i);
+		char *child_argv[] = {argv[2*i+1], argv[2*i+2], NULL};
+		printf("Child_argv %s %s\n", child_argv[0], child_argv[1]);
+		int ret = execv(child_argv[0], child_argv);
 		if(ret == -1) printf(" %s\n", strerror(errno));
 	}
 	else

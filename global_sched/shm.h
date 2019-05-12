@@ -2,6 +2,7 @@
 #include <sys/ipc.h> 
 #include <sys/shm.h> 
 #include <stdio.h>
+#include <stdint.h>
 
 void * get_shared_ptr(char *filename, uint32_t size, int shmflg, int *shmid)
 {

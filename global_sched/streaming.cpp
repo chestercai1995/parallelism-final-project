@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <signal.h>
-#include <sys/time.h>
-
 #include "shm.h"
 #include "stats.h"
+
+stats_struct *stats;
 
 //Global array; 400MB
 #define array_size 100000000
@@ -13,7 +12,7 @@
 
 void * timer_interrupt(int intr)
 {
-	printf("I just got the SIGPROF signal\n");
+	printf("Streaming Interrupt\n");
 	return NULL;
 }
 
@@ -35,6 +34,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	stats = (stats_struct *) calloc(1, sizeof(stats_struct));
 	setup_timer();
 
 	int rt_mul = atoi(argv[1]);
@@ -46,15 +46,15 @@ int main(int argc, char *argv[])
 		uint32_t * global_array;
 		global_array = new uint32_t[array_size];
 
-		printf("%u Starting setup\n", k);
-		fflush(stdout);
+		//printf("%u Starting setup\n", k);
+		//fflush(stdout);
 		for(int i=0; i<array_size; i++)
 		{
 			global_array[i] = 1;
 		}
 		
-		printf("%u Finished setup, starting processing\n", k);
-		fflush(stdout);
+		//printf("%u Finished setup, starting processing\n", k);
+		//fflush(stdout);
 
 		//Processing phase
 		
@@ -66,8 +66,8 @@ int main(int argc, char *argv[])
 				global_array[i] = global_array[i-1] + 1;
 		}
 		
-		printf("%u Finished processing, terminating\n", k);
-		fflush(stdout);
+		//printf("%u Finished processing, terminating\n", k);
+		//fflush(stdout);
 
 		//Termination
 		delete[] global_array;

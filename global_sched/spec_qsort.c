@@ -55,10 +55,15 @@
 
 #include "stdio.h"
 #include "stdlib.h"
+#include "shm.h"
+#include "stats.h"
+
 
 typedef int              cmp_t(const void *, const void *);
 static INLINE char      *med3(char *, char *, char *, cmp_t *);
 static INLINE void       swapfunc(char *, char *, int, int, int);
+
+struct stats_struct * stats;
 
 #define MIN(a, b)       ((a) < (b) ? a : b)
 
@@ -210,34 +215,55 @@ int int32_compare (const void *A, const void *B) {
   return A_data < B_data? -1 : (A_data == B_data)? 0 : 1;
 }
 
+void * timer_interrupt(int intr)
+{
+	printf("Spec-sort interrupt\n");
+	return NULL;
+}
+
+void setup_timer()
+{
+	struct timeval value = {1, 0};
+	struct timeval interval = {0, RECORD_STAT_QUANTUM};
+	struct itimerval timer = {interval, value};
+	
+	signal(SIGPROF, (__sighandler_t) timer_interrupt);
+	setitimer(ITIMER_PROF, &timer, 0);
+	return;
+}
+
+
 
 int main (int argc, char *argv[]) {
 
 
-	if(argc!=2) {
-		printf("Agrument for multiples of runtime needed\n");
-		return 1;
-	}
-	int rt_mul = atoi(argv[1]);
+  if(argc!=2) {
+    printf("Agrument for multiples of runtime needed\n");
+	return 1;
+  }
+  int rt_mul = atoi(argv[1]);
+
+  stats = (struct stats_struct *) calloc(1, sizeof(struct stats_struct));
+  setup_timer();
 
   int rep_count = 1500*rt_mul;
   srand(42);
   A = malloc(elt_size * N);
   for(int k=0; k<rep_count; k++)
   {
-	  printf("%d: Initializing\n", k);
-	  fflush(stdout);
+	  //printf("%d: Initializing\n", k);
+	  //fflush(stdout);
 
 	  for (uint32_t i = 0; i < N; ++i) {
 		A[i] = (uint32_t) rand();
 	  }
-	  printf("%d: Sorting\n", k);
-	  fflush(stdout);
+	  //printf("%d: Sorting\n", k);
+	  //fflush(stdout);
   	  
 	  spec_qsort(A, N, elt_size, int32_compare);
 	  
-	  printf("%d: Deleting\n", k);
-	  fflush(stdout);
+	  //printf("%d: Deleting\n", k);
+	  //fflush(stdout);
 	
   }
   free(A);
