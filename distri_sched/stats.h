@@ -1,7 +1,13 @@
+//in us
+
+#ifndef _STAT_H
+#define _STAT_H
+
 #include <signal.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <stdint.h>
+
 #define RECORD_STAT_QUANTUM 100000
 
 struct stats_struct
@@ -14,3 +20,5 @@ struct stats_struct
 	int64_t num_ref_cycles;
 	int32_t num_vol_ctxt_switches;
 };
+
+#endif

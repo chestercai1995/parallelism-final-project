@@ -1,13 +1,11 @@
 
 CCP = g++
 CC = gcc
-CCPFLAGS = -Wall -lpapi
-CCFLAGS = -Wall -lpapi
+CCPFLAGS = -Wall
+CCFLAGS = -Wall
 
 SRCS = $(wildcard *.c)
 BINDIR = bin
-INCLUDE = -I/opt/apps/papi/5.6.0/include 
-LIBS = /opt/apps/papi/5.6.0/lib
 
 all: c_objs cpp_objs
 
@@ -17,10 +15,10 @@ cpp_objs: $(patsubst %.cpp, %, $(wildcard *.cpp))
 
 
 %: %.c Makefile
-	$(CC) $(INCLUDE) -L$(LIBS) -o $(BINDIR)/$@ $< $(CCFLAGS)
+	$(CC) -o $(BINDIR)/$@ $< $(CCFLAGS)
 
 %: %.cpp Makefile
-	$(CCP) $(INCLUDE) -L$(LIBS) -o $(BINDIR)/$@ $< $(CCPFLAGS)
+	$(CCP) -o $(BINDIR)/$@ $< $(CCPFLAGS)
 
 clean:
 	rm -f $(BINDIR)/*
