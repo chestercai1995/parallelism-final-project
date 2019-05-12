@@ -1,7 +1,5 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include "shm.h"
-#include "stats.h"
+#include "sched.h"
 
 struct stats_struct *stats;
 
@@ -16,24 +14,6 @@ float** C;
 int M = 512;
 int N = 512;
 int P = 512;
-
-
-void * timer_interrupt(int intr)
-{
-	printf("Matmul Interrupt\n");
-	return NULL;
-}
-
-void setup_timer()
-{
-	struct timeval value = {1, 0};
-	struct timeval interval = {0, RECORD_STAT_QUANTUM};
-	struct itimerval timer = {interval, value};
-	
-	signal(SIGPROF, (__sighandler_t) timer_interrupt);
-	setitimer(ITIMER_PROF, &timer, 0);
-	return;
-}
 
 
 void matmul_aware() {
@@ -338,6 +318,7 @@ int main(int argc, char *argv[]) {
 	stats = (struct stats_struct *) calloc(1, sizeof(struct stats_struct));
 
   setup_timer();
+  setup_papi();
 	
   int rt_mul = atoi(argv[1]);
 
@@ -369,4 +350,6 @@ int main(int argc, char *argv[]) {
 	  }
 	  matmul_aware();
   }
+  PAPI_shutdown();
+  exit(0);
 }
