@@ -19,8 +19,7 @@ char event_name1[PAPI_MAX_STR_LEN];
 char event_name2[PAPI_MAX_STR_LEN];
 char event_name3[PAPI_MAX_STR_LEN];
 char event_name4[PAPI_MAX_STR_LEN];
-char event_name5[PAPI_MAX_STR_LEN];
-long long values[6];
+long long values[5];
 
 
 void * timer_interrupt(int intr)
@@ -34,7 +33,6 @@ void * timer_interrupt(int intr)
   printf("Ending values for %s: %lld\n", event_name2,values[2]);
   printf("Ending values for %s: %lld\n", event_name3,values[3]);
   printf("Ending values for %s: %lld\n", event_name4,values[4]);
-  printf("Ending values for %s: %lld\n", event_name5,values[5]);
   if ( (retval = PAPI_start(EventSet0)) != PAPI_OK ){
 	printf("failed here 0\n");
         PAPI_perror("PAPI_start");
@@ -68,10 +66,9 @@ int main(int argc, char *argv[])
 	int i;
   	int event_code0=PAPI_L2_TCM; /* By default monitor total instructions */
 	int event_code1=PAPI_L2_TCA; /* By default monitor total instructions */
-	int event_code2=PAPI_L2_TCH; /* By default monitor total instructions */
-	int event_code3=PAPI_TOT_INS; 
-	int event_code4=PAPI_TOT_CYC; 
-	int event_code5=PAPI_REF_CYC; 
+	int event_code2=PAPI_TOT_INS; 
+	int event_code3=PAPI_TOT_CYC; 
+	int event_code4=PAPI_REF_CYC; 
 	char errstring[PAPI_MAX_STR_LEN];
  
 
@@ -122,11 +119,6 @@ int main(int argc, char *argv[])
         PAPI_perror("PAPI_add_env_event");
         exit(-1);
   }
-  if ( (retval=PAPI_add_env_event(&EventSet0, &event_code5, "PAPI_EVENT"))!=PAPI_OK){
-	printf("failed here 8\n");
-        PAPI_perror("PAPI_add_env_event");
-        exit(-1);
-  }
   if ( (retval=PAPI_event_code_to_name( event_code0, event_name0))!=PAPI_OK){
         PAPI_perror("PAPI_event_code_to_name");   
         exit(-1);
@@ -144,10 +136,6 @@ int main(int argc, char *argv[])
         exit(-1);
   }
   if ( (retval=PAPI_event_code_to_name( event_code4, event_name4))!=PAPI_OK){
-        PAPI_perror("PAPI_event_code_to_name");   
-        exit(-1);
-  }
-  if ( (retval=PAPI_event_code_to_name( event_code5, event_name5))!=PAPI_OK){
         PAPI_perror("PAPI_event_code_to_name");   
         exit(-1);
   }
