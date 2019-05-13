@@ -1,0 +1,2 @@
+bin/compute_fp1 1 4
+bin/compute_fp2 1 5
