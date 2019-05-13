@@ -1,0 +1,2 @@
+bin/streaming1 4 4
+bin/streaming2 4 5
