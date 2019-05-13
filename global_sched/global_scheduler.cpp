@@ -92,8 +92,8 @@ int main(int argc, char *argv[])
 	struct timeval interval = {0, GLOBAL_SCHED_QUANTUM};
 	struct itimerval timer = {interval, value};
 	
-	signal(SIGPROF, (__sighandler_t) global_scheduler);
-	setitimer(ITIMER_PROF, &timer, 0);
+	signal(SIGALRM, (__sighandler_t) global_scheduler);
+	setitimer(ITIMER_REAL, &timer, 0);
 
 	
 
@@ -130,11 +130,20 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		for(int i=0; i<num_programs; i++)
+		int done_cnt = 0;
+			
+		
+		while(1)
 		{
 			int status;
-			pid_t done = wait(&status);
+			pid_t done = waitpid(-1, &status, 0);
+			if(done!=0 || done!=-1)
+			{
+				done_cnt++;
+				if(done_cnt==num_programs) break;
+			}
 		}
+		
 		for(int i=0; i<num_programs; i++)
 		{
 			detach_shared_mem(shm_ptrs[i]);
