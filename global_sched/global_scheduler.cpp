@@ -8,7 +8,10 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <sys/wait.h>
+
 #include "shm.h"
+#include "stats.h"
 
 using namespace std;
 
@@ -17,9 +20,20 @@ using namespace std;
 
 uint64_t cpu_stat[4];
 pid_t child_pids[4];
-
+int num_programs;
+uint64_t **shm_ptrs;
 
 /* =========================================== */
+
+void *global_scheduler(int intr)
+{
+	for(int i=0; i<num_programs; i++)
+	{
+		printf("Reading from Proc %d :", i);
+		printf("%lu, %lu, %lu, %lu, %lu\n", shm_ptrs[i][0], shm_ptrs[i][1], shm_ptrs[i][2], shm_ptrs[i][3], shm_ptrs[i][4]);
+	}
+	return NULL;
+}
 
 int main(int argc, char *argv[])
 {
@@ -38,7 +52,8 @@ int main(int argc, char *argv[])
 	}
 
 	string str;
-	int num_programs = 0, pos = 0;
+	num_programs = 0;
+	int pos = 0;
 	vector<string> programs;
 	vector<string> args1;
 	vector<string> initial_affinity;
@@ -65,24 +80,24 @@ int main(int argc, char *argv[])
 	
 	num_programs = programs.size();
 
+	int *shmids = new int[num_programs];
+	shm_ptrs = new uint64_t *[num_programs];
+
 	for(int i=0; i<num_programs; i++)
 	{
-		cpu_stat[i] = 0;
+		shm_ptrs[i] = (uint64_t *) get_shared_ptr( (char *) programs[i].c_str(), 64, SHM_RDONLY, &shmids[i]);
 	}
 
+	struct timeval value = {1, 0};
+	struct timeval interval = {0, GLOBAL_SCHED_QUANTUM};
+	struct itimerval timer = {interval, value};
 	
-	int shmid;
-	int *shm_ptr = (int *) get_shared_ptr( (char *) programs[0].c_str(), sizeof(int)*4, SHM_W, &shmid);
+	signal(SIGPROF, (__sighandler_t) global_scheduler);
+	setitimer(ITIMER_PROF, &timer, 0);
 
-	printf("Writing to SHM\n");
-	shm_ptr[0] = 10;
-	shm_ptr[1] = 20;
-	shm_ptr[2] = 30;
-	shm_ptr[3] = 40;
+	
 
-	printf("Done writing\n");
-	fflush(stdout);
-	detach_shared_mem(shm_ptr);	
+
 
 	//Launch all programs
 	int pid = 0;
@@ -115,7 +130,18 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
+		for(int i=0; i<num_programs; i++)
+		{
+			int status;
+			pid_t done = wait(&status);
+		}
+		for(int i=0; i<num_programs; i++)
+		{
+			detach_shared_mem(shm_ptrs[i]);
+			destroy_shared_mem(&shmids[i]);
+		}
 		printf("Parent\n");
+		
 	}
 
 

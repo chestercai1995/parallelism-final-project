@@ -3,6 +3,7 @@
 #include <sys/resource.h>
 #include <stdint.h>
 
+//in us
 #define RECORD_STAT_QUANTUM 100000
 #define GLOBAL_SCHED_QUANTUM 100000
 

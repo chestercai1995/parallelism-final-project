@@ -7,7 +7,6 @@ stats_struct *stats;
 #define array_size 100000000
 
 
-
 int main(int argc, char *argv[])
 {
 	if(argc!=2) {
@@ -16,6 +15,11 @@ int main(int argc, char *argv[])
 	}
 
 	stats = (stats_struct *) calloc(1, sizeof(stats_struct));
+	
+	char * filename = argv[0];
+	int shmid;
+	shm_ptr = (uint64_t *) get_shared_ptr(filename, 64, SHM_W, &shmid);
+	
 	setup_timer();
 	setup_papi();
   
@@ -56,14 +60,9 @@ int main(int argc, char *argv[])
 		delete[] global_array;
 
 	}
-	char * filename = (char*) "bin/streaming";
-	int shmid;
-	int *shm_ptr = (int *) get_shared_ptr(filename, sizeof(int)*4, SHM_RDONLY, &shmid);
+	
 
-	printf("Reading from SHM\n");
-	printf("%d, %d, %d, %d\n", shm_ptr[0], shm_ptr[1], shm_ptr[2], shm_ptr[3]);
-
-	printf("Done reading\n");
+	
 	detach_shared_mem(shm_ptr);
 	destroy_shared_mem(&shmid);
 	

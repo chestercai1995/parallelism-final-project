@@ -15,6 +15,7 @@ char event_name3[PAPI_MAX_STR_LEN];
 char event_name4[PAPI_MAX_STR_LEN];
 long long values[5];
 
+uint64_t *shm_ptr;
 
 void * timer_interrupt(int intr)
 {
@@ -22,15 +23,23 @@ void * timer_interrupt(int intr)
         PAPI_perror("PAPI_stop");
         exit(-1);
   }
+  printf("Str intr\n");
+  /*
   printf("Ending values for %s: %lld\n", event_name0,values[0]);
   printf("Ending values for %s: %lld\n", event_name1,values[1]);
   printf("Ending values for %s: %lld\n", event_name2,values[2]);
   printf("Ending values for %s: %lld\n", event_name3,values[3]);
   printf("Ending values for %s: %lld\n", event_name4,values[4]);
+  */
   if ( (retval = PAPI_start(EventSet0)) != PAPI_OK ){
 	printf("failed here 0\n");
         PAPI_perror("PAPI_start");
         exit(-1);
+  }
+
+  for(int i=0; i<5; i++)
+  {
+  	shm_ptr[i] = values[i];
   }
 
   return NULL;
@@ -46,6 +55,7 @@ void setup_timer()
 	setitimer(ITIMER_PROF, &timer, 0);
 	return;
 }
+
 int PAPI_add_env_event(int *EventSet, int *EventCode, char *env_variable){
   int real_event=*EventCode;
   char *eventname;
