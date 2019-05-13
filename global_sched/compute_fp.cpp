@@ -42,6 +42,11 @@ int main(int argc, char* argv[])
 	}
 	stats = (stats_struct *) calloc(1, sizeof(stats_struct));
 	
+	char * filename = argv[0];
+	int shmid;
+	shm_ptr = (uint64_t *) get_shared_ptr(filename, 64, SHM_W, &shmid);
+	
+	
 	setup_timer();
         setup_papi();
 	

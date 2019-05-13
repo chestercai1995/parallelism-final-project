@@ -316,28 +316,31 @@ int main(int argc, char *argv[]) {
 	}
 
 	stats = (struct stats_struct *) calloc(1, sizeof(struct stats_struct));
+	char * filename = argv[0];
+	int shmid;
+	shm_ptr = (uint64_t *) get_shared_ptr(filename, 64, SHM_W, &shmid);
 
   setup_timer();
   setup_papi();
 	
   int rt_mul = atoi(argv[1]);
 
-  create_matrix(&A, M, P);
-  create_matrix(&B, P, N);
-  create_matrix(&C, M, N);
-  int i, j;
-  for(i=0; i<N; i++)
-  {
-    for(j=0; j<N; j++)
-    {
-      A[i][j] = 1.1;
-      B[i][j] = 1.1;    
-    }
-  }
 
   int rep_count = 11*rt_mul;
 
   for(int k=0; k<rep_count; k++) {
+	  create_matrix(&A, M, P);
+	  create_matrix(&B, P, N);
+	  create_matrix(&C, M, N);
+	  int i, j;
+	  for(i=0; i<N; i++)
+	  {
+		for(j=0; j<N; j++)
+		{
+		  A[i][j] = 1.1;
+		  B[i][j] = 1.1;    
+		}
+	  }
 	  // assume some initialization of A and B
 	  // think of this as a library where A and B are
 	  // inputs in row-major format, and C is an output
