@@ -18,8 +18,6 @@ using namespace std;
 /* =========================================== */
 //Globals
 
-uint64_t cpu_stat[4];
-pid_t child_pids[4];
 int num_programs;
 uint64_t **shm_ptrs;
 
@@ -109,8 +107,6 @@ int main(int argc, char *argv[])
 	{
 		pid = fork();
 		if(pid==0) break;
-		child_pids[i] = pid;
-		printf("%d\n", child_pids[i]);
 	}
 	
 	if(pid == 0) 

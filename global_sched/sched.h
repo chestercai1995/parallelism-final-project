@@ -23,7 +23,6 @@ void * timer_interrupt(int intr)
         PAPI_perror("PAPI_stop");
         exit(-1);
   }
-  printf("Str intr\n");
   /*
   printf("Ending values for %s: %lld\n", event_name0,values[0]);
   printf("Ending values for %s: %lld\n", event_name1,values[1]);
