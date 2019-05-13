@@ -5,24 +5,24 @@ max=10
 while [ $counter -le $max ]
 do
 	((counter++))
-	cp streaming streaming$counter
+	cp bin/streaming bin/streaming$counter
 done
 counter=0
 while [ $counter -le $max ]
 do
 	((counter++))
-	cp compute_fp compute_fp$counter
+	cp bin/compute_fp bin/compute_fp$counter
 done
 counter=0
 while [ $counter -le $max ]
 do
 	((counter++))
-	cp matmul_aware_norecur matmul_aware_norecur$counter
+	cp bin/lg_matmul bin/lg_matmul$counter
 done
 counter=0
 while [ $counter -le $max ]
 do
 	((counter++))
-	cp spec_qsort spec_qsort$counter
+	cp bin/sm_matmul bin/sm_matmul$counter
 done
 
