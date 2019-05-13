@@ -1,2 +1,2 @@
-bin/streaming1 1 4
-bin/streaming2 1 5
+bin/streaming1 4 4
+bin/streaming2 4 5
