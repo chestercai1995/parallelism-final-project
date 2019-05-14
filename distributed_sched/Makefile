@@ -1,13 +1,13 @@
 
 CCP = g++
 CC = gcc
-CCPFLAGS = -Wall -lpapi
+CCPFLAGS = -Wall -lpapi -std=c++11 -static
 CCFLAGS = -Wall -lpapi
 
 SRCS = $(wildcard *.c)
 BINDIR = bin
-INCLUDE = -I/opt/apps/papi/5.6.0/include 
-LIBS = /opt/apps/papi/5.6.0/lib
+INCLUDE = -I/misc/pool6/aniket/parallelism-final-project/papi-5.6.0/src
+LIBS = /misc/pool6/aniket/parallelism-final-project/papi-5.6.0/src
 
 all: c_objs cpp_objs
 	./cp.sh

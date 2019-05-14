@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 		
 		pos = str.find(" ");
 		token = str.substr(0, pos);
-		initial_affinity.push_back(stoi(token));
+		initial_affinity.push_back(std::stoi(token));
 		str.erase(0, pos + delimiter.length());
 	}
 	
@@ -171,24 +171,22 @@ int main(int argc, char *argv[])
 			signal(SIGALRM, (__sighandler_t) global_scheduler);
 			setitimer(ITIMER_REAL, &timer, 0);
 			
-			int done_cnt = 0;
 				
 			
-			while(1)
+			for(int i=0; i<num_programs; i++)
 			{
 				int status;
 				pid_t done = waitpid(-1, &status, 0);
 				if(done!=0 || done!=-1)
 				{
-					done_cnt++;
 					printf("Done %d\n", done);
-					if(done_cnt==num_programs) break;
 				}
 			}
 			
 		 	while (!child_scheds.empty())
 			{
-				kill(child_scheds.back(), 0);
+                printf("Killing %d\n", child_scheds.back());
+                printf("returned %d\n", kill(child_scheds.back(), 9));
 				child_scheds.pop_back();
 			}
 

@@ -1,3 +1,4 @@
 timer
 hello
 global_sched/bin/*
+distributed_sched/bin/*
