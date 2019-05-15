@@ -157,6 +157,7 @@ int main(int argc, char *argv[])
 		pid = fork();
 		if(pid==0) break;
         (&stats_ptrs[initial_affinity[i]])->pid = pid;
+        (&stats_ptrs[initial_affinity[i]])->mapping_index = i;
 	}
 	
 	if(pid == 0) 

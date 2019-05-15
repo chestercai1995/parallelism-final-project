@@ -18,9 +18,10 @@ struct stats_struct
 	int64_t num_vol_ctxt_switches;
 
 	int32_t pid;
-
+    int32_t mapping_index;
+    int32_t padding;
 	int32_t updated;
-
+    
 
 };
 
