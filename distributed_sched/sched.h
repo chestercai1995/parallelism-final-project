@@ -25,27 +25,23 @@ void * timer_interrupt(int intr)
         exit(-1);
   }
 
-  printf("Ending values for %s: %lld\n", event_name0,values[0]);
 
-  /* 
+   
   printf("Ending values for %s: %lld\n", event_name0,values[0]);
   printf("Ending values for %s: %lld\n", event_name1,values[1]);
   printf("Ending values for %s: %lld\n", event_name2,values[2]);
   printf("Ending values for %s: %lld\n", event_name3,values[3]);
   printf("Ending values for %s: %lld\n", event_name4,values[4]);
-  */
+  
   if ( (retval = PAPI_start(EventSet0)) != PAPI_OK ){
 	printf("failed here 0\n");
         PAPI_perror("PAPI_start");
         exit(-1);
   }
 
-  printf("iTC%d, ptr %lx\n", *core_mapping, stats_ptrs);
 
   //stats_struct * ptr = stats_ptrs + sizeof(stats_struct) * (*core_mapping);
   stats_struct *ptr = &stats_ptrs[(*core_mapping)];
-  printf("iTC%d, ptr %lx\n", *core_mapping, ptr);
-  printf("Read %ld\n", stats_ptrs[15].l2_cache_misses);
   
 
   ptr->l2_cache_misses = values[0];

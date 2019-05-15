@@ -1,2 +1,4 @@
 bin/streaming1 1 2
 bin/streaming2 1 1
+bin/compute_fp 1 3
+bin/lg_matmul 7 0

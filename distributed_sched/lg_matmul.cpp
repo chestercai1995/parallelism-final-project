@@ -10,9 +10,9 @@
 float** A;
 float** B;
 float** C;
-int M = 256;
-int N = 256;
-int P = 256;
+int M = 128;
+int N = 128;
+int P = 128;
 
 
 void matmul_aware() {
@@ -297,12 +297,12 @@ void create_matrix(float*** Q, int m, int n) {
   *Q = T;
 }
 
-void intialize_matrix(float*** Q, int m, int n) {
+void intialize_matrix(float** Q, int m, int n) {
 
   for(int i=0; i<m; i++) {
     for(int j=0; j<n; j++) {
       //Q[i][j] = (float) rand(); 
-      Q[i][j] = 0; 
+      Q[i][j] = (float) 1.1; 
     }	
   }
 }
@@ -327,13 +327,16 @@ int main(int argc, char *argv[]) {
 	
   int rt_mul = atoi(argv[1]);
 
+  create_matrix(&A, M, P);
+  create_matrix(&B, P, N);
+  create_matrix(&C, M, N);
+  intialize_matrix(A, M, P);
+  intialize_matrix(B, P, N);
+  intialize_matrix(C, M, N);
 
   int rep_count = 11*rt_mul;
 
   for(int k=0; k<rep_count; k++) {
-	  create_matrix(&A, M, P);
-	  create_matrix(&B, P, N);
-	  create_matrix(&C, M, N);
 	  int i, j;
 	  for(i=0; i<N; i++)
 	  {
