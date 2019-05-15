@@ -13,7 +13,7 @@ void * get_shared_ptr(char *filename, uint32_t size, int shmflg, int *shmid)
 	if(key==-1)
     {
         printf("%s\n", strerror(errno));
-		printf("Bad key %d\n", key);
+		printf("Bad key %d for %s\n", key, filename);
     }
     if(*shmid < 0)
 	{

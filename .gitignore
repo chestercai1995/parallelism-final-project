@@ -1,5 +1,6 @@
 timer
 hello
 global_sched/bin/*
+global_sched_dynamic/bin/*
 distributed_sched/bin/*
 papi-5.6.0/*

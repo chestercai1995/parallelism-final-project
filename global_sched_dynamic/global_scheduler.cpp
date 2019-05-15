@@ -356,11 +356,10 @@ int main(int argc, char *argv[])
 
 	stats_ptrs = (stats_struct *) get_shared_ptr( "stats_pt", sizeof(stats_struct)*68, SHM_W, &shmid);
 
-    stats_struct tryi = stats_ptrs[3];
+    //stats_struct tryi = stats_ptrs[3];
 
 	for(int i=0; i<68; i++)
 	{
-        bool created = false;
         for(int k=0; k<num_programs; k++) 
         {
             if(initial_affinity[k] == i)
@@ -368,7 +367,6 @@ int main(int argc, char *argv[])
                 core_mapping[k] = (core_write_struct *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(core_write_struct), SHM_W, &shmids[k]);
                 core_mapping[k]->core_write_id = i;
                 //Add pid to stats_struct
-                created= true;
                 break;
             }
         }

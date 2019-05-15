@@ -1,7 +1,7 @@
 #!/bin/bash
 
 counter=0
-max=10
+max=17
 while [ $counter -le $max ]
 do
 	((counter++))

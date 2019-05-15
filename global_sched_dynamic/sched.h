@@ -40,6 +40,7 @@ void * timer_interrupt(int intr)
 
   //stats_struct * ptr = stats_ptrs + sizeof(stats_struct) * (*core_mapping);
   int64_t idx = core_mapping->core_write_id;
+  //printf("Program at idx %d wrote stats\n", idx);
   stats_struct *ptr = &stats_ptrs[idx];
   
 
