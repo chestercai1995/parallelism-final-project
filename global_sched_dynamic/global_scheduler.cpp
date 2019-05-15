@@ -78,13 +78,32 @@ void swap_processes(int core_src, int core_dest)
          
 
 }
+int findNeighborIndex(int i){
+    if(i%2){
+        return i - 1;
+    }
+    else{
+        return i + 1;
+    }
+}
 
 void *global_scheduler(int intr)
 {
 
 	int i = 0;
 	for(; i < num_programs; i++){//see if there are any misidentified types
-		core_stats[i].
+        if(core_stats[i].l2_cache_access > 1500000){//larger than 1.5M, mark it as ST
+            core_stats[i].type = STREAMING;
+        }
+        else if(core_stats[i].l2_cache_access > 130000){//larger than 130k marking it as LG
+           core_stats[i].type = LG_MATMUL;
+        }
+        else if(core_stats[i].l2_cache_access > 10000){
+            core_stats[i].type = SM_MATMUL;    
+        }
+        else{
+            core_stats[i].type = COMPUTE;    
+        }
 	}
 	for(i = 0; i < 34; i ++){//loot at each tile to see if each match makes sense
 		if(core_stats[2 * i].type == STREAMING){
@@ -168,14 +187,14 @@ void *global_scheduler(int intr)
 			}
 		}
 	}
-	for(i = 0; i < num_programs; i++){
+	for(i = 0; i < num_programs; i++){//find a swap for each bad
 		if(core_stats[i].stat == BAD){
 			int j;
             int found = -1;
-			if(core_stats[i].type == STREAMING){
+			if(core_stats[i].type == STREAMING){//trying to find another streaming or small
 				for(j = 0; j < num_programs; j++){
-				    if(core_stats[j].type == STREAMING 
-                        || core_stats[j].type == SM_MATMUL){
+				    if(core_stats[findNeighborIndex(j)].type == STREAMING 
+                        || core_stats[findNeighborIndex(j)]].type == SM_MATMUL){
                         if(core_stat[j].stat == GOOD)
                             continue;
                         found = j;
@@ -189,9 +208,8 @@ void *global_scheduler(int intr)
                 }
             }
             else if(core_stats[i].type == LG_MATMUL){
-                int found = -1;
-				for(j = 0; j < num_programs; j++){
-				    if(core_stats[j].type == COMPUTE){
+				for(j = 0; j < num_programs; j++){//try finding a compute first
+				    if(core_stats[findNeighborIndex(j)]].type == COMPUTE){
                         if(core_stats[j].stat == BAD){
                             found = j;
                             break;
@@ -201,23 +219,65 @@ void *global_scheduler(int intr)
                         }
                     }	
 				}
-                if(found == ){
-                    
+                if(found == -1){
+				    for(j = 0; j < num_programs; j++){//try finding a compute first
+				        if(core_stats[findNeighborIndex(j)]].type == SM_MATMUL){
+                            if(core_stats[j].stat == BAD){
+                                found = j;
+                                break;
+                            }
+                            else if(core_stats[j].stat == WASTE){
+                                found = j;
+                            }
+                        }	
+				    }
                 }
             }
-            else if(core_stats[i].type == COMPUTE){
-				for(j = 0; j < num_programs; j++){
-				    if(core_stats[j].type == STREAMING 
-                        || core_stats[j].type == SM_MATMUL){
-                        found = j;
+            else if(core_stats[i].type == COMPUTE){//if it's a bad computem, try finding a lg, if not, streaming, then small
+                int found = -1;
+				for(j = 0; j < num_programs; j++){//try finding a compute first
+				    if(core_stats[findNeighborIndex(j)]].type == LG_MATMUL){
                         if(core_stats[j].stat == BAD){
+                            found = j;
                             break;
+                        }
+                        else if(core_stats[j].stat == WASTE){
+                            found = j;
                         }
                     }	
 				}
-            }
+                if(found == -1){
+				    for(j = 0; j < num_programs; j++){//try finding a compute first
+				        if(core_stats[findNeighborIndex(j)]].type == STREAMING){
+                            if(core_stats[j].stat == BAD){
+                                found = j;
+                                break;
+                            }
+                            else if(core_stats[j].stat == WASTE){
+                                found = j;
+                            }
+                        }	
+				    }
+                }
+                if(found == -1){
+				    for(j = 0; j < num_programs; j++){//try finding a compute first
+				        if(core_stats[j].type == SM_MATMUL){
+                            if(core_stats[j].stat == BAD){
+                                found = j;
+                                break;
+                            }
+                            else if(core_stats[j].stat == WASTE){
+                                found = j;
+                            }
+                        }	
+				    }
+                }
+            }//end of searching for a swap for a bad
             //swap i with j
-            pid_t temp;
+            //TODO:call swap function
+            if(found != -1){
+                swap_processes(i, found);
+            }
 		}
 	}
 	
