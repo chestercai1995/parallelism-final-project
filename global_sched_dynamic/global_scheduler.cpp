@@ -85,6 +85,7 @@ int findNeighborIndex(int i){
     else{
         return i + 1;
     }
+    return -1;
 }
 
 void *global_scheduler(int intr)
@@ -92,13 +93,13 @@ void *global_scheduler(int intr)
 
 	int i = 0;
 	for(; i < num_programs; i++){//see if there are any misidentified types
-        if(core_stats[i].l2_cache_access > 1500000){//larger than 1.5M, mark it as ST
+        if(core_stats[i].l2_cache_accesses > 1500000){//larger than 1.5M, mark it as ST
             core_stats[i].type = STREAMING;
         }
-        else if(core_stats[i].l2_cache_access > 130000){//larger than 130k marking it as LG
+        else if(core_stats[i].l2_cache_accesses > 130000){//larger than 130k marking it as LG
            core_stats[i].type = LG_MATMUL;
         }
-        else if(core_stats[i].l2_cache_access > 10000){
+        else if(core_stats[i].l2_cache_accesses > 10000){
             core_stats[i].type = SM_MATMUL;    
         }
         else{
@@ -194,8 +195,8 @@ void *global_scheduler(int intr)
 			if(core_stats[i].type == STREAMING){//trying to find another streaming or small
 				for(j = 0; j < num_programs; j++){
 				    if(core_stats[findNeighborIndex(j)].type == STREAMING 
-                        || core_stats[findNeighborIndex(j)]].type == SM_MATMUL){
-                        if(core_stat[j].stat == GOOD)
+                        || core_stats[findNeighborIndex(j)].type == SM_MATMUL){
+                        if(core_stats[j].stat == GOOD)
                             continue;
                         found = j;
                         if(core_stats[j].stat == BAD){
@@ -209,7 +210,7 @@ void *global_scheduler(int intr)
             }
             else if(core_stats[i].type == LG_MATMUL){
 				for(j = 0; j < num_programs; j++){//try finding a compute first
-				    if(core_stats[findNeighborIndex(j)]].type == COMPUTE){
+				    if(core_stats[findNeighborIndex(j)].type == COMPUTE){
                         if(core_stats[j].stat == BAD){
                             found = j;
                             break;
@@ -221,7 +222,7 @@ void *global_scheduler(int intr)
 				}
                 if(found == -1){
 				    for(j = 0; j < num_programs; j++){//try finding a compute first
-				        if(core_stats[findNeighborIndex(j)]].type == SM_MATMUL){
+				        if(core_stats[findNeighborIndex(j)].type == SM_MATMUL){
                             if(core_stats[j].stat == BAD){
                                 found = j;
                                 break;
@@ -231,12 +232,14 @@ void *global_scheduler(int intr)
                             }
                         }	
 				    }
+                }
+                if(found == -1){
                 }
             }
             else if(core_stats[i].type == COMPUTE){//if it's a bad computem, try finding a lg, if not, streaming, then small
                 int found = -1;
 				for(j = 0; j < num_programs; j++){//try finding a compute first
-				    if(core_stats[findNeighborIndex(j)]].type == LG_MATMUL){
+				    if(core_stats[findNeighborIndex(j)].type == LG_MATMUL){
                         if(core_stats[j].stat == BAD){
                             found = j;
                             break;
@@ -248,7 +251,7 @@ void *global_scheduler(int intr)
 				}
                 if(found == -1){
 				    for(j = 0; j < num_programs; j++){//try finding a compute first
-				        if(core_stats[findNeighborIndex(j)]].type == STREAMING){
+				        if(core_stats[findNeighborIndex(j)].type == SM_MATMUL){
                             if(core_stats[j].stat == BAD){
                                 found = j;
                                 break;
@@ -261,7 +264,7 @@ void *global_scheduler(int intr)
                 }
                 if(found == -1){
 				    for(j = 0; j < num_programs; j++){//try finding a compute first
-				        if(core_stats[j].type == SM_MATMUL){
+				        if(core_stats[findNeighborIndex(j)].type == STREAMING){
                             if(core_stats[j].stat == BAD){
                                 found = j;
                                 break;
@@ -272,10 +275,15 @@ void *global_scheduler(int intr)
                         }	
 				    }
                 }
+                if(found == -1){
+                }
             }//end of searching for a swap for a bad
             //swap i with j
             //TODO:call swap function
             if(found != -1){
+                printf("*****************************\n");
+                printf("trying to swap %d with %d\n", i, found);
+                printf("*****************************\n");
                 swap_processes(i, found);
             }
 		}
@@ -284,12 +292,12 @@ void *global_scheduler(int intr)
 
 	for(i = 0; i < num_programs; i++)
     {
-		if(shm_ptrs[i]!=NULL)
-		{
+		//if(shm_ptrs[i]!=NULL)
+		//{
 			//printf("Reading from Proc %d :", i);
-			memcpy(&core_stats[i], &stat_ptrs[i], sizeof(stats_struct));
+			memcpy(&core_stats[i], &stats_ptrs[i], sizeof(stats_struct));
 			//printf("%ld, %ld, %ld, %ld, %ld\n", core_stats[i].l2_cache_misses, core_stats[i].l2_cache_accesses, core_stats[i].num_instructions, core_stats[i].num_cycles, core_stats[i].num_ref_cycles);
-		}
+		//}
 	}
 
 	return NULL;
@@ -417,11 +425,11 @@ int main(int argc, char *argv[])
             }
         }
         
-        while (!child_scheds.empty())
-        {
-            printf("Kill status: %d\n", kill(child_scheds.back(), SIGKILL));
-            child_scheds.pop_back();
-        }
+        //while (!child_scheds.empty())
+        //{
+        //    printf("Kill status: %d\n", kill(child_scheds.back(), SIGKILL));
+        //    child_scheds.pop_back();
+        //}
             
         detach_shared_mem(stats_ptrs);
         destroy_shared_mem(&shmid);
