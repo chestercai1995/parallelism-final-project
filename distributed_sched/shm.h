@@ -3,13 +3,32 @@
 #include <sys/shm.h> 
 #include <stdio.h>
 #include <stdint.h>
+#include <errno.h>
+#include <string.h>
 
 void * get_shared_ptr(char *filename, uint32_t size, int shmflg, int *shmid)
 {
 	key_t key = ftok(filename, 65);
 	*shmid = shmget(key, size, IPC_CREAT | 0666);
-	if(shmid < 0)
+	if(key==-1)
+    {
+        printf("%s\n", strerror(errno));
+		printf("Bad key %d\n", key);
+    }
+    if(*shmid < 0)
 	{
+        printf("%s\n", strerror(errno));
+		printf("Unable to get shared pts\n");
+	}
+	return shmat(*shmid, NULL, shmflg);
+} 
+
+void * get_shared_ptr_noid(uint32_t size, int shmflg, int *shmid)
+{
+	*shmid = shmget(IPC_PRIVATE, size, IPC_CREAT | 0666);
+    if(*shmid < 0)
+	{
+        printf("%s\n", strerror(errno));
 		printf("Unable to get shared pts\n");
 	}
 	return shmat(*shmid, NULL, shmflg);

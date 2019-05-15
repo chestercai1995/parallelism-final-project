@@ -15,7 +15,8 @@ char event_name3[PAPI_MAX_STR_LEN];
 char event_name4[PAPI_MAX_STR_LEN];
 long long values[5];
 
-struct stats_struct *shm_ptr;
+struct stats_struct *stats_ptrs;
+int * core_mapping;
 
 void * timer_interrupt(int intr)
 {
@@ -23,6 +24,9 @@ void * timer_interrupt(int intr)
         PAPI_perror("PAPI_stop");
         exit(-1);
   }
+
+  printf("Ending values for %s: %lld\n", event_name0,values[0]);
+
   /* 
   printf("Ending values for %s: %lld\n", event_name0,values[0]);
   printf("Ending values for %s: %lld\n", event_name1,values[1]);
@@ -36,11 +40,13 @@ void * timer_interrupt(int intr)
         exit(-1);
   }
 
-  shm_ptr->l2_cache_misses = values[0];
-  shm_ptr->l2_cache_accesses = values[1];
-  shm_ptr->num_instructions = values[2];
-  shm_ptr->num_cycles = values[3];
-  shm_ptr->num_ref_cycles = values[4];
+  stats_struct * ptr = stats_ptrs + sizeof(stats_struct) * (*core_mapping);
+
+  ptr->l2_cache_misses = values[0];
+  ptr->l2_cache_accesses = values[1];
+  ptr->num_instructions = values[2];
+  ptr->num_cycles = values[3];
+  ptr->num_ref_cycles = values[4];
 
   return NULL;
 }

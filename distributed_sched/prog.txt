@@ -1,2 +1,2 @@
-bin/compute_fp1 1 4
-bin/compute_fp2 1 5
+bin/streaming1 1 0
+bin/streaming2 1 1

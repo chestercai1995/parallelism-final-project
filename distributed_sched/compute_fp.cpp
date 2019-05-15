@@ -41,8 +41,11 @@ int main(int argc, char* argv[])
 	}
 	
 	char * filename = argv[0];
-	int shmid;
-	shm_ptr = (stats_struct *) get_shared_ptr(filename, sizeof(stats_struct), SHM_W, &shmid);
+	int shmid1;
+	stats_ptrs = (stats_struct *) get_shared_ptr("stats_pt", sizeof(stats_struct)*68, SHM_W, &shmid1);
+	
+    int shmid2;
+    core_mapping = (int *) get_shared_ptr(filename, sizeof(int), SHM_W, &shmid2);
 	
 	
 	setup_timer();
@@ -73,7 +76,8 @@ int main(int argc, char* argv[])
 		} 
 
 	}
-	detach_shared_mem(shm_ptr);
+  detach_shared_mem(stats_ptrs);
+  detach_shared_mem(core_mapping);
         PAPI_shutdown();
 	return 0;
 }

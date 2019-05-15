@@ -19,7 +19,9 @@ using namespace std;
 //Globals
 
 int num_programs;
-stats_struct **shm_ptrs;
+
+stats_struct *stats_ptrs;
+int **core_mapping;
 
 //Global stats
 stats_struct *core_stats;
@@ -31,20 +33,23 @@ int my_tile = 0;
 void *global_scheduler(int intr)
 {
 	int i = 2*my_tile;
-	if(shm_ptrs[i]!=NULL)
-	{
-		printf("Reading from Proc %d :", i);
-		memcpy(&core_stats[i], shm_ptrs[i], sizeof(stats_struct));
-		printf("%ld, %ld, %ld, %ld, %ld\n", core_stats[i].l2_cache_misses, core_stats[i].l2_cache_accesses, core_stats[i].num_instructions, core_stats[i].num_cycles, core_stats[i].num_ref_cycles);
-	}
-	i = 2*my_tile+1;
-	if(shm_ptrs[i]!=NULL)
-	{
-		printf("Reading from Proc %d :", i);
-		memcpy(&core_stats[i], shm_ptrs[i], sizeof(stats_struct));
-		printf("%ld, %ld, %ld, %ld, %ld\n", core_stats[i].l2_cache_misses, core_stats[i].l2_cache_accesses, core_stats[i].num_instructions, core_stats[i].num_cycles, core_stats[i].num_ref_cycles);
-	}
 
+    if(my_tile==0){
+    if(*(core_mapping[i])!=-1)
+    {
+		printf("Reading from Proc %d :", i);
+		memcpy(&core_stats[i], stats_ptrs + i*sizeof(stats_struct), sizeof(stats_struct));
+		printf("%ld, %ld, %ld, %ld, %ld\n", core_stats[i].l2_cache_misses, core_stats[i].l2_cache_accesses, core_stats[i].num_instructions, core_stats[i].num_cycles, core_stats[i].num_ref_cycles);
+	}
+    if(*(core_mapping[i])!=-1)
+    {
+	    i = 2*my_tile+1;
+		
+        printf("Reading from Proc %d :", i);
+		memcpy(&core_stats[i], stats_ptrs + i*sizeof(stats_struct), sizeof(stats_struct));
+		printf("%ld, %ld, %ld, %ld, %ld\n", core_stats[i].l2_cache_misses, core_stats[i].l2_cache_accesses, core_stats[i].num_instructions, core_stats[i].num_cycles, core_stats[i].num_ref_cycles);
+    }
+    }
 	return NULL;
 }
 
@@ -95,12 +100,32 @@ int main(int argc, char *argv[])
 
 	core_stats = new stats_struct[68];
 	int *shmids = new int[68];
-	shm_ptrs = new stats_struct *[68];
+    int shmid;
+	core_mapping = new int *[68];
 	
 
-	for(int i=0; i<num_programs; i++)
+	stats_ptrs = (stats_struct *) get_shared_ptr( "stats_pt", sizeof(stats_struct)*68, SHM_W, &shmid);
+
+    int k = 0;
+	for(int i=0; i<68; i++)
 	{
-		shm_ptrs[initial_affinity[i]] = (stats_struct *) get_shared_ptr( (char *) programs[i].c_str(), sizeof(stats_struct), SHM_W, &shmids[initial_affinity[i]]);
+        bool created = false;
+        for(int k=0; k<num_programs; k++) 
+        {
+            if(initial_affinity[k] == i)
+            {
+                core_mapping[i] = (int *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(int), SHM_W, &shmids[i]);
+                *(core_mapping[i]) = i;
+                created= true;
+                break;
+            }
+        }
+    
+        if(!created)
+        {
+            core_mapping[i] = (int *) get_shared_ptr_noid( sizeof(int), SHM_W, &shmids[i]);
+            *(core_mapping[i]) = -1;
+        }
 	}
 
 
@@ -150,6 +175,29 @@ int main(int argc, char *argv[])
 	
 		if(sched_pid == 0)
 		{
+            //Recreate all ptrs for children
+            stats_ptrs = (stats_struct *) get_shared_ptr( "stats_pt", sizeof(stats_struct)*68, SHM_W, &shmid);
+
+            int k = 0;
+            for(int i=0; i<68; i++)
+            {
+                bool created = false;
+                for(int k=0; k<num_programs; k++) 
+                {
+                    if(initial_affinity[k] == i)
+                    {
+                        core_mapping[i] = (int *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(int), SHM_W, &shmids[i]);
+                        created= true;
+                        break;
+                    }
+                }
+            
+                if(!created)
+                {
+                    core_mapping[i] = (int *) get_shared_ptr_noid( sizeof(int), SHM_W, &shmids[i]);
+                }    
+            }
+
 			my_tile = i+1;
 			printf("Child sched %d\n", my_tile);
 			struct timeval value = {1, 0};
@@ -189,11 +237,14 @@ int main(int argc, char *argv[])
                 printf("returned %d\n", kill(child_scheds.back(), 9));
 				child_scheds.pop_back();
 			}
+				
+            detach_shared_mem(stats_ptrs);
+            destroy_shared_mem(&shmid);
 
-			for(int i=0; i<num_programs; i++)
+			for(int i=0; i<68; i++)
 			{
-				detach_shared_mem(shm_ptrs[initial_affinity[i]]);
-				destroy_shared_mem(&shmids[initial_affinity[i]]);
+				detach_shared_mem(core_mapping[i]);
+				destroy_shared_mem(&shmids[i]);
 			}
 			printf("Parent\n");
 	

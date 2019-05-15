@@ -1,8 +1,186 @@
-Uable to set affinity to 4
-Uable to set affinity to 5
 Parent sched 0
-Done 32344
-Done 32345
-Killing 32346
+Reading from Proc 0 :0, 0, 0, 0, 0
+Reading from Proc 1 :0, 0, 0, 0, 0
+Reading from Proc 0 :0, 0, 0, 0, 0
+Reading from Proc 1 :0, 0, 0, 0, 0
+Done 29186
+Done 29189
+Killing 29201
+returned 0
+Killing 29200
+returned 0
+Killing 29199
+returned 0
+Killing 29198
+returned 0
+Killing 29197
+returned 0
+Killing 29196
+returned 0
+Killing 29195
+returned 0
+Killing 29194
+returned 0
+Killing 29193
+returned 0
+Killing 29192
+returned 0
+Killing 29191
+returned 0
+Killing 29190
+returned 0
+Killing 29189
+returned -1
+Killing 29188
+returned 0
+Killing 29187
+returned 0
+Killing 29186
+returned -1
+Killing 29185
+returned 0
+Killing 29184
+returned 0
+Killing 29183
+returned 0
+Killing 29182
+returned 0
+Killing 29181
+returned 0
+Killing 29180
+returned 0
+Killing 29179
+returned 0
+Killing 29178
+returned 0
+Killing 29177
+returned 0
+Killing 29176
+returned 0
+Killing 29175
+returned 0
+Killing 29174
+returned 0
+Killing 29173
+returned 0
+Killing 29172
+returned 0
+Killing 29171
+returned 0
+Killing 29170
+returned 0
+Killing 29169
 returned 0
 Parent
+Ending values for PAPI_L2_TCM: 1204
+Ending values for PAPI_L2_TCM: 255
+Ending values for PAPI_L2_TCM: 89
+Ending values for PAPI_L2_TCM: 25
+Ending values for PAPI_L2_TCM: 39
+Ending values for PAPI_L2_TCM: 42
+Ending values for PAPI_L2_TCM: 63
+Ending values for PAPI_L2_TCM: 112
+Ending values for PAPI_L2_TCM: 72
+Ending values for PAPI_L2_TCM: 133
+Ending values for PAPI_L2_TCM: 85
+Ending values for PAPI_L2_TCM: 193
+Ending values for PAPI_L2_TCM: 65
+Ending values for PAPI_L2_TCM: 46
+Ending values for PAPI_L2_TCM: 47
+Ending values for PAPI_L2_TCM: 57
+Ending values for PAPI_L2_TCM: 37
+Ending values for PAPI_L2_TCM: 43
+Ending values for PAPI_L2_TCM: 60
+Ending values for PAPI_L2_TCM: 52
+Ending values for PAPI_L2_TCM: 10
+Ending values for PAPI_L2_TCM: 286
+Ending values for PAPI_L2_TCM: 104
+Ending values for PAPI_L2_TCM: 75
+Ending values for PAPI_L2_TCM: 53
+Ending values for PAPI_L2_TCM: 65
+Ending values for PAPI_L2_TCM: 48
+Ending values for PAPI_L2_TCM: 58
+Ending values for PAPI_L2_TCM: 16
+Ending values for PAPI_L2_TCM: 6
+Ending values for PAPI_L2_TCM: 8
+Ending values for PAPI_L2_TCM: 168
+Ending values for PAPI_L2_TCM: 85
+Ending values for PAPI_L2_TCM: 38
+Ending values for PAPI_L2_TCM: 32
+Ending values for PAPI_L2_TCM: 5
+Ending values for PAPI_L2_TCM: 49
+Ending values for PAPI_L2_TCM: 62
+Ending values for PAPI_L2_TCM: 65
+Ending values for PAPI_L2_TCM: 9
+Ending values for PAPI_L2_TCM: 68
+Ending values for PAPI_L2_TCM: 143
+Ending values for PAPI_L2_TCM: 85
+Ending values for PAPI_L2_TCM: 52
+Ending values for PAPI_L2_TCM: 46
+Ending values for PAPI_L2_TCM: 65
+Ending values for PAPI_L2_TCM: 44
+Ending values for PAPI_L2_TCM: 57
+Ending values for PAPI_L2_TCM: 45
+Ending values for PAPI_L2_TCM: 57
+Ending values for PAPI_L2_TCM: 5
+Ending values for PAPI_L2_TCM: 170
+Ending values for PAPI_L2_TCM: 66
+Ending values for PAPI_L2_TCM: 13
+Ending values for PAPI_L2_TCM: 45
+Ending values for PAPI_L2_TCM: 36
+Ending values for PAPI_L2_TCM: 1203
+Ending values for PAPI_L2_TCM: 334
+Ending values for PAPI_L2_TCM: 264
+Ending values for PAPI_L2_TCM: 32
+Ending values for PAPI_L2_TCM: 82
+Ending values for PAPI_L2_TCM: 45
+Ending values for PAPI_L2_TCM: 119
+Ending values for PAPI_L2_TCM: 132
+Ending values for PAPI_L2_TCM: 84
+Ending values for PAPI_L2_TCM: 204
+Ending values for PAPI_L2_TCM: 122
+Ending values for PAPI_L2_TCM: 136
+Ending values for PAPI_L2_TCM: 55
+Ending values for PAPI_L2_TCM: 61
+Ending values for PAPI_L2_TCM: 65
+Ending values for PAPI_L2_TCM: 45
+Ending values for PAPI_L2_TCM: 41
+Ending values for PAPI_L2_TCM: 27
+Ending values for PAPI_L2_TCM: 8
+Ending values for PAPI_L2_TCM: 55
+Ending values for PAPI_L2_TCM: 8
+Ending values for PAPI_L2_TCM: 114
+Ending values for PAPI_L2_TCM: 87
+Ending values for PAPI_L2_TCM: 63
+Ending values for PAPI_L2_TCM: 110
+Ending values for PAPI_L2_TCM: 76
+Ending values for PAPI_L2_TCM: 67
+Ending values for PAPI_L2_TCM: 44
+Ending values for PAPI_L2_TCM: 9
+Ending values for PAPI_L2_TCM: 66
+Ending values for PAPI_L2_TCM: 41
+Ending values for PAPI_L2_TCM: 149
+Ending values for PAPI_L2_TCM: 81
+Ending values for PAPI_L2_TCM: 15
+Ending values for PAPI_L2_TCM: 38
+Ending values for PAPI_L2_TCM: 6
+Ending values for PAPI_L2_TCM: 100
+Ending values for PAPI_L2_TCM: 116
+Ending values for PAPI_L2_TCM: 36
+Ending values for PAPI_L2_TCM: 38
+Ending values for PAPI_L2_TCM: 107
+Ending values for PAPI_L2_TCM: 65
+Ending values for PAPI_L2_TCM: 60
+Ending values for PAPI_L2_TCM: 97
+Ending values for PAPI_L2_TCM: 32
+Ending values for PAPI_L2_TCM: 65
+Ending values for PAPI_L2_TCM: 40
+Ending values for PAPI_L2_TCM: 55
+Ending values for PAPI_L2_TCM: 61
+Ending values for PAPI_L2_TCM: 47
+Ending values for PAPI_L2_TCM: 33
+Ending values for PAPI_L2_TCM: 187
+Ending values for PAPI_L2_TCM: 106
+Ending values for PAPI_L2_TCM: 39
+Ending values for PAPI_L2_TCM: 95
+Ending values for PAPI_L2_TCM: 77
