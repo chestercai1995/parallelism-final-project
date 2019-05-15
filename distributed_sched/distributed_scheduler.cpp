@@ -9,6 +9,8 @@
 #include <vector>
 #include <string>
 #include <sys/wait.h>
+#include <semaphore.h>
+#include <fcntl.h>
 
 #include "shm.h"
 #include "stats.h"
@@ -24,6 +26,7 @@ stats_struct *stats_ptrs;
 
 core_write_struct **core_mapping;
 
+sem_t ** stats_locks;
 
 int shmid;
 int *shmids;
@@ -88,7 +91,61 @@ void swap_processes(int core_src, int core_dest)
 
 void *global_scheduler(int intr)
 {
-	int i = 2*my_tile;
+
+    if(my_tile==0 || my_tile==1)
+    {
+        int c1 = 2*my_tile;
+        int c2 = 2*my_tile+1;
+        
+        printf("Trying to acquire locks\n");
+        
+        int my_lock = sem_trywait(stats_locks[my_tile]);
+       
+        int n_locks = 0;
+        for(int i=0; i<num_neighbours[my_tile]; i++)
+        {
+            int neighbouring_tile = neighbours[my_tile][i]; 
+            n_locks = n_locks || sem_trywait(stats_locks[neighbouring_tile]);
+        }
+
+        if((n_locks||my_lock)==0)
+        {
+            printf("%d acquired locks:", my_tile);
+            for(int i=0; i<num_neighbours[my_tile]; i++)
+            {
+                int neighbouring_tile = neighbours[my_tile][i]; 
+                printf("%d,\n", neighbouring_tile);
+            }
+            printf("\n");
+
+            // Now that we've acquired locks, look at the program classes for 
+            // the neighbouring programs. If a good match is found, swap.
+            // 
+            
+
+            //All locks succeeded
+            if(global_cnt==10 && my_tile==0)
+            {
+                printf("Swapping 0\n");
+                swap_processes(0, 2);
+            }
+            if(global_cnt==20 && my_tile==1)
+            {
+                printf("Swapping 1\n");
+                swap_processes(0, 2);
+            }
+            sem_post(stats_locks[my_tile]);        
+            for(int i=0; i<num_neighbours[my_tile]; i++)
+            {
+                int neighbouring_tile = neighbours[my_tile][i];
+                sem_post(stats_locks[neighbouring_tile]);
+            }
+            printf("released locks\n");
+        }
+        global_cnt++;
+    }
+
+    int i = 2*my_tile; 
 
     if(my_tile==1 || my_tile==0){
 
@@ -105,13 +162,8 @@ void *global_scheduler(int intr)
     
     }
 
-    global_cnt++;
 
 
-    if(global_cnt==10 && my_tile==0)
-    {
-        swap_processes(0, 3);          
-    }
 
 	return NULL;
 }
@@ -164,7 +216,7 @@ int main(int argc, char *argv[])
 	core_stats = new stats_struct[68];
 	shmids = new int[68];
 	core_mapping = new core_write_struct *[68];
-	
+	stats_locks = new sem_t *[34];
 
 	stats_ptrs = (stats_struct *) get_shared_ptr( "stats_pt", sizeof(stats_struct)*68, SHM_W, &shmid);
 
@@ -184,13 +236,18 @@ int main(int argc, char *argv[])
         }
     
 	}
-
-    
+    /* 
     for(int k=num_programs; k<68; k++)
     {
-        core_mapping[k] = (core_write_struct *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(core_write_struct), SHM_W, &shmids[k]);
+        core_mapping[k] = (core_write_struct *) get_shared_ptr_noid(sizeof(core_write_struct), SHM_W, &shmids[k]);
         core_mapping[k]->core_write_id = -1;
     }
+    */
+    for(int i=0; i<34; i++)
+    {
+        stats_locks[i] = sem_open((char*) to_string(i).c_str(), O_CREAT, 0666, 1);
+    }
+    
 
 
 	//Launch all programs
@@ -254,12 +311,18 @@ int main(int argc, char *argv[])
                         break;
                     }
                 }
-            
+                //semaphores
             }
+            /*
             for(int k=num_programs; k<68; k++)
             {
-                core_mapping[k] = (core_write_struct *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(core_write_struct), SHM_W, &shmids[k]);
+                core_mapping[k] = (core_write_struct *) get_shared_ptr_noid(sizeof(core_write_struct), SHM_W, &shmids[k]);
                 core_mapping[k]->core_write_id = -1;
+            }
+            */
+            for(int i=0; i<34; i++)
+            {
+                stats_locks[i] = sem_open((char*) to_string(i).c_str(), O_CREAT, 0666, 1);
             }
 
 			
