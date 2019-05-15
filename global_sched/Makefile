@@ -10,6 +10,7 @@ INCLUDE = -I/opt/apps/papi/5.6.0/include
 LIBS = /opt/apps/papi/5.6.0/lib
 
 all: c_objs cpp_objs
+	./cp.sh
 
 c_objs: $(patsubst %.c, %, $(wildcard *.c))
 

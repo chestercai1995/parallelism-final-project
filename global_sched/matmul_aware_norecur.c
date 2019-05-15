@@ -11,9 +11,9 @@ struct stats_struct *stats;
 float** A;
 float** B;
 float** C;
-int M = 512;
-int N = 512;
-int P = 512;
+int M = 64;
+int N = 64;
+int P = 64;
 
 
 void matmul_aware() {

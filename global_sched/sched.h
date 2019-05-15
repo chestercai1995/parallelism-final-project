@@ -24,6 +24,7 @@ void * timer_interrupt(int intr)
         exit(-1);
   }
   /*
+ 
   printf("Ending values for %s: %lld\n", event_name0,values[0]);
   printf("Ending values for %s: %lld\n", event_name1,values[1]);
   printf("Ending values for %s: %lld\n", event_name2,values[2]);

@@ -47,8 +47,8 @@ int main(int argc, char* argv[])
 	shm_ptr = (uint64_t *) get_shared_ptr(filename, 64, SHM_W, &shmid);
 	
 	
-	setup_timer();
-        setup_papi();
+	//setup_timer();
+        //setup_papi();
 	
 	int rt_mul = atoi(argv[1]);
 	
@@ -75,6 +75,6 @@ int main(int argc, char* argv[])
 		} 
 
 	}
-        PAPI_shutdown();
+        //PAPI_shutdown();
 	return 0;
 }
