@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     int shmid2;
     core_mapping = (int *) get_shared_ptr(filename, sizeof(int), SHM_W, &shmid2);
 
-    printf("%lx, %lx\n", stats_ptrs, core_mapping);
+    //printf("%lx, %lx\n", *(stats_ptrs), core_mapping);
 	
 	setup_timer();
 	setup_papi();

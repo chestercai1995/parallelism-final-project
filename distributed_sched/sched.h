@@ -40,13 +40,21 @@ void * timer_interrupt(int intr)
         exit(-1);
   }
 
-  stats_struct * ptr = stats_ptrs + sizeof(stats_struct) * (*core_mapping);
+  printf("iTC%d, ptr %lx\n", *core_mapping, stats_ptrs);
+
+  //stats_struct * ptr = stats_ptrs + sizeof(stats_struct) * (*core_mapping);
+  stats_struct *ptr = &stats_ptrs[(*core_mapping)];
+  printf("iTC%d, ptr %lx\n", *core_mapping, ptr);
+  printf("Read %ld\n", stats_ptrs[15].l2_cache_misses);
+  
 
   ptr->l2_cache_misses = values[0];
   ptr->l2_cache_accesses = values[1];
   ptr->num_instructions = values[2];
   ptr->num_cycles = values[3];
   ptr->num_ref_cycles = values[4];
+
+  printf("Written\n");
 
   return NULL;
 }

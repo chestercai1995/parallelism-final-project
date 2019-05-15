@@ -34,21 +34,22 @@ void *global_scheduler(int intr)
 {
 	int i = 2*my_tile;
 
-    if(my_tile==0){
-    if(*(core_mapping[i])!=-1)
-    {
+    if(my_tile==1 || my_tile==0){
+    //if(*(core_mapping[i])!=-1)
+    //{
 		printf("Reading from Proc %d :", i);
-		memcpy(&core_stats[i], stats_ptrs + i*sizeof(stats_struct), sizeof(stats_struct));
-		printf("%ld, %ld, %ld, %ld, %ld\n", core_stats[i].l2_cache_misses, core_stats[i].l2_cache_accesses, core_stats[i].num_instructions, core_stats[i].num_cycles, core_stats[i].num_ref_cycles);
-	}
-    if(*(core_mapping[i])!=-1)
-    {
+		stats_struct * ptr = &stats_ptrs[i];
+		printf("%ld, %ld, %ld, %ld, %ld\n", ptr->l2_cache_misses, ptr->l2_cache_accesses, ptr->num_instructions, ptr->num_cycles, ptr->num_ref_cycles);
+	//}
+    //if(*(core_mapping[i])!=-1)
+    //{
 	    i = 2*my_tile+1;
 		
         printf("Reading from Proc %d :", i);
-		memcpy(&core_stats[i], stats_ptrs + i*sizeof(stats_struct), sizeof(stats_struct));
-		printf("%ld, %ld, %ld, %ld, %ld\n", core_stats[i].l2_cache_misses, core_stats[i].l2_cache_accesses, core_stats[i].num_instructions, core_stats[i].num_cycles, core_stats[i].num_ref_cycles);
-    }
+		ptr = &stats_ptrs[i];
+		printf("%ld, %ld, %ld, %ld, %ld\n", ptr->l2_cache_misses, ptr->l2_cache_accesses, ptr->num_instructions, ptr->num_cycles, ptr->num_ref_cycles);
+
+    //}
     }
 	return NULL;
 }
@@ -106,7 +107,8 @@ int main(int argc, char *argv[])
 
 	stats_ptrs = (stats_struct *) get_shared_ptr( "stats_pt", sizeof(stats_struct)*68, SHM_W, &shmid);
 
-    int k = 0;
+    stats_struct tryi = stats_ptrs[3];
+
 	for(int i=0; i<68; i++)
 	{
         bool created = false;
@@ -114,21 +116,26 @@ int main(int argc, char *argv[])
         {
             if(initial_affinity[k] == i)
             {
-                core_mapping[i] = (int *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(int), SHM_W, &shmids[i]);
-                *(core_mapping[i]) = i;
+                core_mapping[k] = (int *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(int), SHM_W, &shmids[k]);
+                *(core_mapping[k]) = i;
                 created= true;
                 break;
             }
         }
     
-        if(!created)
-        {
-            core_mapping[i] = (int *) get_shared_ptr_noid( sizeof(int), SHM_W, &shmids[i]);
-            *(core_mapping[i]) = -1;
-        }
 	}
 
+    //Set all unintialized core mappings
+    
+    for(int k=num_programs; k<68; k++)
+    {
+        core_mapping[k] = (int *) get_shared_ptr_noid( sizeof(int), SHM_W, &shmids[k]);
+        *(core_mapping[k]) = -1;
+    } 
+       
+    
 
+    for(int i=0; i<68; i++) printf("%d: %d\n", i, *(core_mapping[i]));
 	
 
 
@@ -175,10 +182,10 @@ int main(int argc, char *argv[])
 	
 		if(sched_pid == 0)
 		{
+            
             //Recreate all ptrs for children
             stats_ptrs = (stats_struct *) get_shared_ptr( "stats_pt", sizeof(stats_struct)*68, SHM_W, &shmid);
 
-            int k = 0;
             for(int i=0; i<68; i++)
             {
                 bool created = false;
@@ -186,17 +193,22 @@ int main(int argc, char *argv[])
                 {
                     if(initial_affinity[k] == i)
                     {
-                        core_mapping[i] = (int *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(int), SHM_W, &shmids[i]);
+                        core_mapping[k] = (int *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(int), SHM_W, &shmids[k]);
+                        *(core_mapping[k]) = i;
                         created= true;
                         break;
                     }
                 }
             
-                if(!created)
-                {
-                    core_mapping[i] = (int *) get_shared_ptr_noid( sizeof(int), SHM_W, &shmids[i]);
-                }    
             }
+
+            //Set all unintialized core mappings
+            
+            for(int k=num_programs; k<68; k++)
+            {
+                core_mapping[k] = (int *) get_shared_ptr_noid( sizeof(int), SHM_W, &shmids[k]);
+                *(core_mapping[k]) = -1;
+            } 
 
 			my_tile = i+1;
 			printf("Child sched %d\n", my_tile);
