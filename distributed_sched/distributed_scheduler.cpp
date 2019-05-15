@@ -21,7 +21,9 @@ using namespace std;
 int num_programs;
 
 stats_struct *stats_ptrs;
-int **core_mapping;
+
+core_write_struct **core_mapping;
+
 
 int shmid;
 int *shmids;
@@ -117,7 +119,7 @@ int main(int argc, char *argv[])
 
 	core_stats = new stats_struct[68];
 	shmids = new int[68];
-	core_mapping = new int *[68];
+	core_mapping = new core_write_struct *[68];
 	
 
 	stats_ptrs = (stats_struct *) get_shared_ptr( "stats_pt", sizeof(stats_struct)*68, SHM_W, &shmid);
@@ -131,8 +133,9 @@ int main(int argc, char *argv[])
         {
             if(initial_affinity[k] == i)
             {
-                core_mapping[k] = (int *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(int), SHM_W, &shmids[k]);
-                *(core_mapping[k]) = i;
+                core_mapping[k] = (core_write_struct *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(core_write_struct), SHM_W, &shmids[k]);
+                core_mapping[k]->core_write_id = i;
+                //Add pid to stats_struct
                 created= true;
                 break;
             }
@@ -140,18 +143,6 @@ int main(int argc, char *argv[])
     
 	}
 
-    //Set all unintialized core mappings
-    /*
-    for(int k=num_programs; k<68; k++)
-    {
-        core_mapping[k] = (int *) get_shared_ptr_noid( sizeof(int), SHM_W, &shmids[k]);
-        *(core_mapping[k]) = -1;
-    } 
-    */   
-    
-
-    //for(int i=0; i<68; i++) printf("%d: %d\n", i, *(core_mapping[i]));
-	
 
 
 
@@ -165,6 +156,7 @@ int main(int argc, char *argv[])
 	{
 		pid = fork();
 		if(pid==0) break;
+        (&stats_ptrs[initial_affinity[i]])->pid = pid;
 	}
 	
 	if(pid == 0) 
@@ -208,8 +200,8 @@ int main(int argc, char *argv[])
                 {
                     if(initial_affinity[k] == i)
                     {
-                        core_mapping[k] = (int *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(int), SHM_W, &shmids[k]);
-                        *(core_mapping[k]) = i;
+                        core_mapping[k] = (core_write_struct *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(core_write_struct), SHM_W, &shmids[k]);
+                        core_mapping[k]->core_write_id = i;
                         created= true;
                         break;
                     }
@@ -217,14 +209,6 @@ int main(int argc, char *argv[])
             
             }
 
-            //Set all unintialized core mappings
-            /*
-            for(int k=num_programs; k<68; k++)
-            {
-                core_mapping[k] = (int *) get_shared_ptr_noid( sizeof(int), SHM_W, &shmids[k]);
-                *(core_mapping[k]) = -1;
-            } 
-*/
             static struct sigaction _sigact;
 
             memset(&_sigact, 0, sizeof(_sigact));

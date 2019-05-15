@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 	stats_ptrs = (stats_struct *) get_shared_ptr("stats_pt", sizeof(stats_struct)*68, SHM_W, &shmid1);
 	
     int shmid2;
-    core_mapping = (int *) get_shared_ptr(filename, sizeof(int), SHM_W, &shmid2);
+    core_mapping = (core_write_struct *) get_shared_ptr(filename, sizeof(core_write_struct), SHM_W, &shmid2);
 
     //printf("%lx, %lx\n", *(stats_ptrs), core_mapping);
 	

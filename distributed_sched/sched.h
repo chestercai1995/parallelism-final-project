@@ -16,7 +16,7 @@ char event_name4[PAPI_MAX_STR_LEN];
 long long values[5];
 
 struct stats_struct *stats_ptrs;
-int * core_mapping;
+core_write_struct * core_mapping;
 
 void * timer_interrupt(int intr)
 {
@@ -41,7 +41,8 @@ void * timer_interrupt(int intr)
 
 
   //stats_struct * ptr = stats_ptrs + sizeof(stats_struct) * (*core_mapping);
-  stats_struct *ptr = &stats_ptrs[(*core_mapping)];
+  int64_t idx = core_mapping->core_write_id;
+  stats_struct *ptr = &stats_ptrs[idx];
   
 
   ptr->l2_cache_misses = values[0];

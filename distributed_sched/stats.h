@@ -24,6 +24,18 @@ struct stats_struct
 
 };
 
+struct core_write_struct
+{
+    int64_t core_write_id;
+    int64_t padding1;
+    int64_t padding2;
+    int64_t padding3;
+    int64_t padding4;
+    int64_t padding5;
+    int64_t padding6;
+    int64_t padding7;
+};
+
 struct tile_stats_struct
 {
 	int64_t l2_cache_misses_c0;
