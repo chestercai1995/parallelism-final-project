@@ -33,6 +33,8 @@ stats_struct *core_stats;
 
 int my_tile = 0;
 
+int global_cnt = 0;
+
 /* =========================================== */
 
 
@@ -41,22 +43,28 @@ void *global_scheduler(int intr)
 	int i = 2*my_tile;
 
     if(my_tile==1 || my_tile==0){
-    //if(*(core_mapping[i])!=-1)
-    //{
+
 		printf("Reading from Proc %d :", i);
 		stats_struct * ptr = &stats_ptrs[i];
 		printf("%ld, %ld, %ld, %ld, %ld\n", ptr->l2_cache_misses, ptr->l2_cache_accesses, ptr->num_instructions, ptr->num_cycles, ptr->num_ref_cycles);
-	//}
-    //if(*(core_mapping[i])!=-1)
-    //{
-	    i = 2*my_tile+1;
+	    
+        i = 2*my_tile+1;
 		
         printf("Reading from Proc %d :", i);
 		ptr = &stats_ptrs[i];
 		printf("%ld, %ld, %ld, %ld, %ld\n", ptr->l2_cache_misses, ptr->l2_cache_accesses, ptr->num_instructions, ptr->num_cycles, ptr->num_ref_cycles);
 
-    //}
+    
     }
+
+    global_cnt++;
+
+    if(global_cnt==4 && my_tile==0)
+    {
+    //swap
+        
+    }
+
 	return NULL;
 }
 

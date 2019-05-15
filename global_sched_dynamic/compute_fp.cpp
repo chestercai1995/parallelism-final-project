@@ -3,7 +3,6 @@
 
 #define computation_loops 1000000
 
-stats_struct *stats;
 
 
 inline double fRand(double fMin, double fMax)
@@ -40,11 +39,13 @@ int main(int argc, char* argv[])
 		printf("Agrument for multiples of runtime needed\n");
 		return 1;
 	}
-	stats = (stats_struct *) calloc(1, sizeof(stats_struct));
 	
 	char * filename = argv[0];
-	int shmid;
-	shm_ptr = (uint64_t *) get_shared_ptr(filename, 64, SHM_W, &shmid);
+	int shmid1;
+	stats_ptrs = (stats_struct *) get_shared_ptr("stats_pt", sizeof(stats_struct)*68, SHM_W, &shmid1);
+	
+    int shmid2;
+    core_mapping = (core_write_struct *) get_shared_ptr(filename, sizeof(core_write_struct), SHM_W, &shmid2);
 	
 	
 	setup_timer();
@@ -75,6 +76,8 @@ int main(int argc, char* argv[])
 		} 
 
 	}
+  detach_shared_mem(stats_ptrs);
+  detach_shared_mem(core_mapping);
         PAPI_shutdown();
 	return 0;
 }

@@ -1,7 +1,6 @@
 #include "shm.h"
 #include "sched.h"
 
-struct stats_struct *stats;
 
 #define BSIZE1 2 
 #define BSIZE2 16
@@ -11,9 +10,9 @@ struct stats_struct *stats;
 float** A;
 float** B;
 float** C;
-int M = 256;
-int N = 256;
-int P = 256;
+int M = 128;
+int N = 128;
+int P = 128;
 
 
 void matmul_aware() {
@@ -298,12 +297,12 @@ void create_matrix(float*** Q, int m, int n) {
   *Q = T;
 }
 
-void intialize_matrix(float*** Q, int m, int n) {
+void intialize_matrix(float** Q, int m, int n) {
 
   for(int i=0; i<m; i++) {
     for(int j=0; j<n; j++) {
       //Q[i][j] = (float) rand(); 
-      Q[i][j] = 0; 
+      Q[i][j] = (float) 1.1; 
     }	
   }
 }
@@ -314,24 +313,30 @@ int main(int argc, char *argv[]) {
 		printf("Agrument for multiples of runtime needed\n");
 		return 1;
 	}
+	
+    char * filename = argv[0];
+	int shmid1;
+	stats_ptrs = (stats_struct *) get_shared_ptr("stats_pt", sizeof(stats_struct)*68, SHM_W, &shmid1);
+	
+    int shmid2;
+    core_mapping = (core_write_struct *) get_shared_ptr(filename, sizeof(core_write_struct), SHM_W, &shmid2);
 
-	stats = (struct stats_struct *) calloc(1, sizeof(struct stats_struct));
-	char * filename = argv[0];
-	int shmid;
-	shm_ptr = (uint64_t *) get_shared_ptr(filename, 64, SHM_W, &shmid);
 
   setup_timer();
   setup_papi();
 	
   int rt_mul = atoi(argv[1]);
 
+  create_matrix(&A, M, P);
+  create_matrix(&B, P, N);
+  create_matrix(&C, M, N);
+  intialize_matrix(A, M, P);
+  intialize_matrix(B, P, N);
+  intialize_matrix(C, M, N);
 
   int rep_count = 11*rt_mul;
 
   for(int k=0; k<rep_count; k++) {
-	  create_matrix(&A, M, P);
-	  create_matrix(&B, P, N);
-	  create_matrix(&C, M, N);
 	  int i, j;
 	  for(i=0; i<N; i++)
 	  {
@@ -353,6 +358,8 @@ int main(int argc, char *argv[]) {
 	  }
 	  matmul_aware();
   }
+  detach_shared_mem(stats_ptrs);
+  detach_shared_mem(core_mapping);
   PAPI_shutdown();
   exit(0);
 }

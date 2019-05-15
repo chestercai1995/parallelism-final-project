@@ -1,7 +1,6 @@
 #include "shm.h"
 #include "sched.h"
 
-struct stats_struct *stats;
 
 #define BSIZE1 2 
 #define BSIZE2 16
@@ -11,9 +10,9 @@ struct stats_struct *stats;
 float** A;
 float** B;
 float** C;
-int M = 512;
-int N = 512;
-int P = 512;
+int M = 64;
+int N = 64;
+int P = 64;
 
 
 void matmul_aware() {
@@ -298,7 +297,7 @@ void create_matrix(float*** Q, int m, int n) {
   *Q = T;
 }
 
-void intialize_matrix(float*** Q, int m, int n) {
+void intialize_matrix(float** Q, int m, int n) {
 
   for(int i=0; i<m; i++) {
     for(int j=0; j<n; j++) {
@@ -314,30 +313,39 @@ int main(int argc, char *argv[]) {
 		printf("Agrument for multiples of runtime needed\n");
 		return 1;
 	}
+	
+    char * filename = argv[0];
+	int shmid1;
+	stats_ptrs = (stats_struct *) get_shared_ptr("stats_pt", sizeof(stats_struct)*68, SHM_W, &shmid1);
+	
+    int shmid2;
+    core_mapping = (core_write_struct *) get_shared_ptr(filename, sizeof(core_write_struct), SHM_W, &shmid2);
 
-	stats = (struct stats_struct *) calloc(1, sizeof(struct stats_struct));
 
   setup_timer();
   setup_papi();
 	
   int rt_mul = atoi(argv[1]);
 
-  create_matrix(&A, M, P);
-  create_matrix(&B, P, N);
-  create_matrix(&C, M, N);
-  int i, j;
-  for(i=0; i<N; i++)
-  {
-    for(j=0; j<N; j++)
-    {
-      A[i][j] = 1.1;
-      B[i][j] = 1.1;    
-    }
-  }
+	  create_matrix(&A, M, P);
+	  create_matrix(&B, P, N);
+	  create_matrix(&C, M, N);
+    intialize_matrix(A, M, P);
+    intialize_matrix(B, P, N);
+    intialize_matrix(C, M, N);
 
   int rep_count = 11*rt_mul;
 
   for(int k=0; k<rep_count; k++) {
+	  int i, j;
+	  for(i=0; i<N; i++)
+	  {
+		for(j=0; j<N; j++)
+		{
+		  A[i][j] = 1.1;
+		  B[i][j] = 1.1;    
+		}
+	  }
 	  // assume some initialization of A and B
 	  // think of this as a library where A and B are
 	  // inputs in row-major format, and C is an output
@@ -350,6 +358,8 @@ int main(int argc, char *argv[]) {
 	  }
 	  matmul_aware();
   }
+  detach_shared_mem(stats_ptrs);
+  detach_shared_mem(core_mapping);
   PAPI_shutdown();
   exit(0);
 }

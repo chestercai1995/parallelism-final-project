@@ -12,10 +12,10 @@ char event_name0[PAPI_MAX_STR_LEN];
 char event_name1[PAPI_MAX_STR_LEN];
 char event_name2[PAPI_MAX_STR_LEN];
 char event_name3[PAPI_MAX_STR_LEN];
-char event_name4[PAPI_MAX_STR_LEN];
-long long values[5];
+long long values[4];
 
-uint64_t *shm_ptr;
+struct stats_struct *stats_ptrs;
+core_write_struct * core_mapping;
 
 void * timer_interrupt(int intr)
 {
@@ -23,23 +23,32 @@ void * timer_interrupt(int intr)
         PAPI_perror("PAPI_stop");
         exit(-1);
   }
-  /*
+
+
+   
   printf("Ending values for %s: %lld\n", event_name0,values[0]);
   printf("Ending values for %s: %lld\n", event_name1,values[1]);
   printf("Ending values for %s: %lld\n", event_name2,values[2]);
   printf("Ending values for %s: %lld\n", event_name3,values[3]);
-  printf("Ending values for %s: %lld\n", event_name4,values[4]);
-  */
+  
   if ( (retval = PAPI_start(EventSet0)) != PAPI_OK ){
 	printf("failed here 0\n");
         PAPI_perror("PAPI_start");
         exit(-1);
   }
 
-  for(int i=0; i<5; i++)
-  {
-  	shm_ptr[i] = values[i];
-  }
+
+  //stats_struct * ptr = stats_ptrs + sizeof(stats_struct) * (*core_mapping);
+  int64_t idx = core_mapping->core_write_id;
+  stats_struct *ptr = &stats_ptrs[idx];
+  
+
+  ptr->l2_cache_misses = values[0];
+  ptr->l2_cache_accesses = values[1];
+  ptr->num_instructions = values[2];
+  ptr->num_cycles = values[3];
+
+  printf("Written\n");
 
   return NULL;
 }
@@ -68,7 +77,7 @@ int PAPI_add_env_event(int *EventSet, int *EventCode, char *env_variable){
         }
         else{
            if ( strlen(eventname)>1 && eventname[1]=='x')
-                sscanf(eventname, "%#x", &real_event);
+                sscanf(eventname, "%x", &real_event);
            else
                real_event = atoi(eventname);
         }
@@ -90,7 +99,6 @@ void setup_papi(){
 	int event_code1=PAPI_L2_TCA; /* By default monitor total instructions */
 	int event_code2=PAPI_TOT_INS; 
 	int event_code3=PAPI_TOT_CYC; 
-	int event_code4=PAPI_REF_CYC; 
 	char errstring[PAPI_MAX_STR_LEN];
  
 
@@ -136,11 +144,6 @@ void setup_papi(){
 	      PAPI_perror("PAPI_add_env_event");
 	      exit(-1);
 	}
-	if ( (retval=PAPI_add_env_event(&EventSet0, &event_code4, "PAPI_EVENT"))!=PAPI_OK){
-	      printf("failed here 7\n");
-	      PAPI_perror("PAPI_add_env_event");
-	      exit(-1);
-	}
 	if ( (retval=PAPI_event_code_to_name( event_code0, event_name0))!=PAPI_OK){
 	      PAPI_perror("PAPI_event_code_to_name");   
 	      exit(-1);
@@ -154,10 +157,6 @@ void setup_papi(){
 	      exit(-1);
 	}
 	if ( (retval=PAPI_event_code_to_name( event_code3, event_name3))!=PAPI_OK){
-	      PAPI_perror("PAPI_event_code_to_name");   
-	      exit(-1);
-	}
-	if ( (retval=PAPI_event_code_to_name( event_code4, event_name4))!=PAPI_OK){
 	      PAPI_perror("PAPI_event_code_to_name");   
 	      exit(-1);
 	}
