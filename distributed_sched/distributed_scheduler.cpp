@@ -37,6 +37,54 @@ int global_cnt = 0;
 
 /* =========================================== */
 
+void swap_processes(int core_src, int core_dest)
+{
+    printf("SSSSSSSSSSSSSSSSSSSSSSSSSs%lu\n", sizeof(stats_struct));
+    int i = core_src;
+    int j = core_dest;
+    //swap
+    //swap pids
+    stats_struct * src =  &stats_ptrs[i];
+    stats_struct * dest =  &stats_ptrs[j];
+
+    int32_t pid1 = src->pid;
+    int32_t pid2 = dest->pid;
+
+    int32_t map1 = src->mapping_index;
+    int32_t map2 = dest->mapping_index;
+
+    src->pid = pid2;
+    dest->pid = pid1;
+    
+    src->mapping_index = map2;
+    dest->mapping_index = map1;
+
+    int32_t core1 = core_mapping[map1]->core_write_id;
+    int32_t core2 = core_mapping[map2]->core_write_id;
+    
+    core_mapping[map1]->core_write_id = core2;
+    core_mapping[map2]->core_write_id = core1;
+
+    cpu_set_t set1;
+    cpu_set_t set2;
+
+    CPU_ZERO(&set1);
+    CPU_ZERO(&set2);
+
+    CPU_SET(core2, &set1);
+    CPU_SET(core1, &set2);
+
+    int set_val1 = sched_setaffinity(pid1, sizeof(set1), &set1);
+    int set_val2 = sched_setaffinity(pid2, sizeof(set2), &set2);
+
+    if(set_val1==-1 || set_val2==-1)
+    {
+        printf("Unable to swap threads\n");
+    }
+         
+
+}
+
 
 void *global_scheduler(int intr)
 {
@@ -46,23 +94,23 @@ void *global_scheduler(int intr)
 
 		printf("Reading from Proc %d :", i);
 		stats_struct * ptr = &stats_ptrs[i];
-		printf("%ld, %ld, %ld, %ld, %ld\n", ptr->l2_cache_misses, ptr->l2_cache_accesses, ptr->num_instructions, ptr->num_cycles, ptr->num_ref_cycles);
+		printf("%ld, %ld, %ld, %ld\n", ptr->l2_cache_misses, ptr->l2_cache_accesses, ptr->num_instructions, ptr->num_cycles);
 	    
         i = 2*my_tile+1;
 		
         printf("Reading from Proc %d :", i);
 		ptr = &stats_ptrs[i];
-		printf("%ld, %ld, %ld, %ld, %ld\n", ptr->l2_cache_misses, ptr->l2_cache_accesses, ptr->num_instructions, ptr->num_cycles, ptr->num_ref_cycles);
+		printf("%ld, %ld, %ld, %ld\n", ptr->l2_cache_misses, ptr->l2_cache_accesses, ptr->num_instructions, ptr->num_cycles);
 
     
     }
 
     global_cnt++;
 
-    if(global_cnt==4 && my_tile==0)
+
+    if(global_cnt==10 && my_tile==0)
     {
-    //swap
-        
+        swap_processes(0, 3);          
     }
 
 	return NULL;
@@ -120,11 +168,10 @@ int main(int argc, char *argv[])
 
 	stats_ptrs = (stats_struct *) get_shared_ptr( "stats_pt", sizeof(stats_struct)*68, SHM_W, &shmid);
 
-    stats_struct tryi = stats_ptrs[3];
+    //stats_struct tryi = stats_ptrs[3];
 
 	for(int i=0; i<68; i++)
 	{
-        bool created = false;
         for(int k=0; k<num_programs; k++) 
         {
             if(initial_affinity[k] == i)
@@ -132,14 +179,18 @@ int main(int argc, char *argv[])
                 core_mapping[k] = (core_write_struct *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(core_write_struct), SHM_W, &shmids[k]);
                 core_mapping[k]->core_write_id = i;
                 //Add pid to stats_struct
-                created= true;
                 break;
             }
         }
     
 	}
 
-
+    
+    for(int k=num_programs; k<68; k++)
+    {
+        core_mapping[k] = (core_write_struct *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(core_write_struct), SHM_W, &shmids[k]);
+        core_mapping[k]->core_write_id = -1;
+    }
 
 
 	//Launch all programs
@@ -192,18 +243,23 @@ int main(int argc, char *argv[])
 
             for(int i=0; i<68; i++)
             {
-                bool created = false;
+                //bool created = false;
                 for(int k=0; k<num_programs; k++) 
                 {
                     if(initial_affinity[k] == i)
                     {
                         core_mapping[k] = (core_write_struct *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(core_write_struct), SHM_W, &shmids[k]);
                         core_mapping[k]->core_write_id = i;
-                        created= true;
+                        //created= true;
                         break;
                     }
                 }
             
+            }
+            for(int k=num_programs; k<68; k++)
+            {
+                core_mapping[k] = (core_write_struct *) get_shared_ptr( (char *) programs[k].c_str(), sizeof(core_write_struct), SHM_W, &shmids[k]);
+                core_mapping[k]->core_write_id = -1;
             }
 
 			
