@@ -10,9 +10,9 @@
 float** A;
 float** B;
 float** C;
-int M = 64;
-int N = 64;
-int P = 64;
+int M = 32;
+int N = 32;
+int P = 32;
 
 
 void matmul_aware() {

@@ -30,7 +30,9 @@ void * timer_interrupt(int intr)
   printf("Ending values for %s: %lld\n", event_name1,values[1]);
   printf("Ending values for %s: %lld\n", event_name2,values[2]);
   printf("Ending values for %s: %lld\n", event_name3,values[3]);
-  
+ 
+  fflush(stdout);
+
   if ( (retval = PAPI_start(EventSet0)) != PAPI_OK ){
 	printf("failed here 0\n");
         PAPI_perror("PAPI_start");
