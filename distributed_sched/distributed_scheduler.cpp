@@ -35,18 +35,6 @@ int my_tile = 0;
 
 /* =========================================== */
 
-void sig_term_handler(int signum, siginfo_t *info, void *ptr)
-{
-    detach_shared_mem(stats_ptrs);
-    destroy_shared_mem(&shmid);
-
-    for(int i=0; i<num_programs; i++)
-    {
-        detach_shared_mem(core_mapping[i]);
-        destroy_shared_mem(&shmids[i]);
-    }
-    
-}
 
 void *global_scheduler(int intr)
 {
@@ -210,13 +198,6 @@ int main(int argc, char *argv[])
             
             }
 
-            static struct sigaction _sigact;
-
-            memset(&_sigact, 0, sizeof(_sigact));
-            _sigact.sa_sigaction = sig_term_handler;
-            _sigact.sa_flags = SA_SIGINFO;
-
-            sigaction(SIGTERM, &_sigact, NULL);
 			
             my_tile = i+1;
 			printf("Child sched %d\n", my_tile);

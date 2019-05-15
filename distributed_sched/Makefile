@@ -1,8 +1,8 @@
 
 CCP = g++
 CC = gcc
-CCPFLAGS = -Wall -lpapi -std=c++11 -static
-CCFLAGS = -Wall -lpapi
+CCPFLAGS = -Wall -lpapi -std=c++11 -static -Wno-write-strings
+CCFLAGS = -Wall -lpapi -Wno-write-strings
 
 SRCS = $(wildcard *.c)
 BINDIR = bin
