@@ -23,12 +23,28 @@ int num_programs;
 stats_struct *stats_ptrs;
 int **core_mapping;
 
+int shmid;
+int *shmids;
+
 //Global stats
 stats_struct *core_stats;
 
 int my_tile = 0;
 
 /* =========================================== */
+
+void sig_term_handler(int signum, siginfo_t *info, void *ptr)
+{
+    detach_shared_mem(stats_ptrs);
+    destroy_shared_mem(&shmid);
+
+    for(int i=0; i<num_programs; i++)
+    {
+        detach_shared_mem(core_mapping[i]);
+        destroy_shared_mem(&shmids[i]);
+    }
+    
+}
 
 void *global_scheduler(int intr)
 {
@@ -100,8 +116,7 @@ int main(int argc, char *argv[])
 	num_programs = programs.size();
 
 	core_stats = new stats_struct[68];
-	int *shmids = new int[68];
-    int shmid;
+	shmids = new int[68];
 	core_mapping = new int *[68];
 	
 
@@ -126,16 +141,16 @@ int main(int argc, char *argv[])
 	}
 
     //Set all unintialized core mappings
-    
+    /*
     for(int k=num_programs; k<68; k++)
     {
         core_mapping[k] = (int *) get_shared_ptr_noid( sizeof(int), SHM_W, &shmids[k]);
         *(core_mapping[k]) = -1;
     } 
-       
+    */   
     
 
-    for(int i=0; i<68; i++) printf("%d: %d\n", i, *(core_mapping[i]));
+    //for(int i=0; i<68; i++) printf("%d: %d\n", i, *(core_mapping[i]));
 	
 
 
@@ -203,14 +218,22 @@ int main(int argc, char *argv[])
             }
 
             //Set all unintialized core mappings
-            
+            /*
             for(int k=num_programs; k<68; k++)
             {
                 core_mapping[k] = (int *) get_shared_ptr_noid( sizeof(int), SHM_W, &shmids[k]);
                 *(core_mapping[k]) = -1;
             } 
+*/
+            static struct sigaction _sigact;
 
-			my_tile = i+1;
+            memset(&_sigact, 0, sizeof(_sigact));
+            _sigact.sa_sigaction = sig_term_handler;
+            _sigact.sa_flags = SA_SIGINFO;
+
+            sigaction(SIGTERM, &_sigact, NULL);
+			
+            my_tile = i+1;
 			printf("Child sched %d\n", my_tile);
 			struct timeval value = {1, 0};
 			struct timeval interval = {0, GLOBAL_SCHED_QUANTUM};
@@ -218,7 +241,9 @@ int main(int argc, char *argv[])
 			
 			signal(SIGALRM, (__sighandler_t) global_scheduler);
 			setitimer(ITIMER_REAL, &timer, 0);
-			while(1);
+
+
+			while(1) pause();
 		}
 		else
 		{
@@ -246,14 +271,14 @@ int main(int argc, char *argv[])
 		 	while (!child_scheds.empty())
 			{
                 printf("Killing %d\n", child_scheds.back());
-                printf("returned %d\n", kill(child_scheds.back(), 9));
+                printf("returned %d\n", kill(child_scheds.back(), SIGKILL));
 				child_scheds.pop_back();
 			}
 				
             detach_shared_mem(stats_ptrs);
             destroy_shared_mem(&shmid);
 
-			for(int i=0; i<68; i++)
+			for(int i=0; i<num_programs; i++)
 			{
 				detach_shared_mem(core_mapping[i]);
 				destroy_shared_mem(&shmids[i]);
