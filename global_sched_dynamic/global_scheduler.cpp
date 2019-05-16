@@ -13,6 +13,9 @@
 #include "shm.h"
 #include "stats.h"
 
+#define CYCLES_AFTER_MOVE 5
+#define INIT_CYCLES 5
+
 using namespace std;
 
 /* =========================================== */
@@ -52,6 +55,9 @@ void swap_processes(int core_src, int core_dest)
     
     src->mapping_index = map2;
     dest->mapping_index = map1;
+
+    src->moved_recently = CYCLES_AFTER_MOVE;
+    dest->moved_recently = CYCLES_AFTER_MOVE;
 
     int32_t core1 = core_mapping[map1]->core_write_id;
     int32_t core2 = core_mapping[map2]->core_write_id;
@@ -117,12 +123,14 @@ void *global_scheduler(int intr)
 				core_stats[2 * i + 1].stat = GOOD;
 			}
 			else if(core_stats[2*i + 1].type == LG_MATMUL){
+                printf("identified core %d as bad\n",2*i);
 				core_stats[2 * i].stat = BAD;
 				core_stats[2 * i + 1].stat = GOOD;
 			}
 			else if(core_stats[2*i + 1].type == COMPUTE){
+                printf("identified core %d as waste\n",2*i);
 				core_stats[2 * i].stat = WASTE;
-				core_stats[2 * i + 1].stat = GOOD;
+				core_stats[2 * i + 1].stat = WASTE;
 			}
 			else{//unknown
 			}
@@ -137,11 +145,13 @@ void *global_scheduler(int intr)
 				core_stats[2 * i + 1].stat = GOOD;
 			}
 			else if(core_stats[2*i + 1].type == LG_MATMUL){
+                printf("identified core %d as waste\n",2*i);
 				core_stats[2 * i].stat = WASTE;
-				core_stats[2 * i + 1].stat = GOOD;
+				core_stats[2 * i + 1].stat = WASTE;
 			}
 			else if(core_stats[2*i + 1].type == COMPUTE){
-				core_stats[2 * i].stat = GOOD;
+                printf("identified core %d as waste\n",2*i+1);
+				core_stats[2 * i].stat = WASTE;
 				core_stats[2 * i + 1].stat = WASTE;
 			}
 			else{//unknown
@@ -149,14 +159,17 @@ void *global_scheduler(int intr)
 		}
 		else if(core_stats[2 * i].type == LG_MATMUL){
 			if(core_stats[2*i + 1].type == STREAMING){
+                printf("identified core %d as bad\n",2*i+1);
 				core_stats[2 * i].stat = GOOD;
 				core_stats[2 * i + 1].stat = BAD;
 			}
 			else if(core_stats[2*i + 1].type == SM_MATMUL){
-				core_stats[2 * i].stat = GOOD;
+                printf("identified core %d as waste\n",2*i+1);
+				core_stats[2 * i].stat = WASTE;
 				core_stats[2 * i + 1].stat = WASTE;
 			}
 			else if(core_stats[2*i + 1].type == LG_MATMUL){
+                printf("identified core %d as bad\n",2*i);
 				core_stats[2 * i].stat = BAD;
 				core_stats[2 * i + 1].stat = GOOD;
 			}
@@ -169,18 +182,21 @@ void *global_scheduler(int intr)
 		}
 		else if(core_stats[2 * i].type == COMPUTE){
 			if(core_stats[2*i + 1].type == STREAMING){
-				core_stats[2 * i].stat = GOOD;
+                printf("identified core %d as waste\n",2*i+1);
+				core_stats[2 * i].stat = WASTE;
 				core_stats[2 * i + 1].stat = WASTE;
 			}
 			else if(core_stats[2*i + 1].type == SM_MATMUL){
+                printf("identified core %d as waste\n",2*i);
 				core_stats[2 * i].stat = WASTE;
-				core_stats[2 * i + 1].stat = GOOD;
+				core_stats[2 * i + 1].stat = WASTE;
 			}
 			else if(core_stats[2*i + 1].type == LG_MATMUL){
 				core_stats[2 * i].stat = GOOD;
 				core_stats[2 * i + 1].stat = GOOD;
 			}
 			else if(core_stats[2*i + 1].type == COMPUTE){
+                printf("identified core %d as bad\n",2*i);
 				core_stats[2 * i].stat = BAD;
 				core_stats[2 * i + 1].stat = GOOD;
 			}
@@ -188,12 +204,21 @@ void *global_scheduler(int intr)
 			}
 		}
 	}
+    int found = -1;
 	for(i = 0; i < num_programs; i++){//find a swap for each bad
-		if(core_stats[i].stat == BAD){
+        found = -1;
+        if(core_stats[i].moved_recently)
+        {
+            printf("core %d has been moved recently, %d cycles left\n", i, core_stats[i].moved_recently);
+            continue;
+        }
+	    if(core_stats[i].stat == BAD){
 			int j;
-            int found = -1;
 			if(core_stats[i].type == STREAMING){//trying to find another streaming or small
 				for(j = 0; j < num_programs; j++){
+                    if(i == j){
+                        continue;
+                    }
 				    if(core_stats[findNeighborIndex(j)].type == STREAMING 
                         || core_stats[findNeighborIndex(j)].type == SM_MATMUL){
                         if(core_stats[j].stat == GOOD)
@@ -278,16 +303,19 @@ void *global_scheduler(int intr)
                 if(found == -1){
                 }
             }//end of searching for a swap for a bad
-            //swap i with j
-            //TODO:call swap function
-            if(found != -1){
-                printf("*****************************\n");
-                printf("trying to swap %d with %d\n", i, found);
-                printf("*****************************\n");
-                swap_processes(i, found);
-            }
 		}
+        if(found != -1){
+            printf("*****************************\n");
+            printf("trying to swap %d with %d\n", i, found);
+            printf("*****************************\n");
+            swap_processes(i, found);
+        }
 	}
+    for(i = 0; i < num_programs; i++){
+        if(stats_ptrs[i].moved_recently){
+            stats_ptrs[i].moved_recently --;
+        }
+    }
 	
 
 	for(i = 0; i < num_programs; i++)
@@ -385,6 +413,7 @@ int main(int argc, char *argv[])
 		if(pid==0) break;
         (&stats_ptrs[initial_affinity[i]])->pid = pid;
         (&stats_ptrs[initial_affinity[i]])->mapping_index = i;
+        (&stats_ptrs[initial_affinity[i]])->moved_recently = INIT_CYCLES;
 	}
 	
 	if(pid == 0) 
@@ -428,6 +457,36 @@ int main(int argc, char *argv[])
         //    printf("Kill status: %d\n", kill(child_scheds.back(), SIGKILL));
         //    child_scheds.pop_back();
         //}
+
+        for(i = 0; i < 34; i++){//print the final mapping before quitting
+            printf("on tile %d,", i);
+            if(stats_ptrs[2 * i].type == COMPUTE){
+                printf("compute");
+            }
+            else if(stats_ptrs[2 * i].type == LG_MATMUL){
+                printf("lg_matmul");
+            }
+            else if(stats_ptrs[2 * i].type == SM_MATMUL){
+                printf("sm_matmul");
+            }
+            else if(stats_ptrs[2 * i].type == STREAMING){
+                printf("streaming");
+            }
+            printf(" is paired with ");
+            if(stats_ptrs[2 * i + 1].type == COMPUTE){
+                printf("compute");
+            }
+            else if(stats_ptrs[2 * i + 1].type == LG_MATMUL){
+                printf("lg_matmul");
+            }
+            else if(stats_ptrs[2 * i + 1].type == SM_MATMUL){
+                printf("sm_matmul");
+            }
+            else if(stats_ptrs[2 * i + 1].type == STREAMING){
+                printf("streaming");
+            }
+            printf("\n");
+        }
             
         detach_shared_mem(stats_ptrs);
         destroy_shared_mem(&shmid);

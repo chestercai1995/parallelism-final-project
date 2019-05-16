@@ -26,10 +26,10 @@ void * timer_interrupt(int intr)
 
 
    
-  printf("Ending values for %s: %lld\n", event_name0,values[0]);
-  printf("Ending values for %s: %lld\n", event_name1,values[1]);
-  printf("Ending values for %s: %lld\n", event_name2,values[2]);
-  printf("Ending values for %s: %lld\n", event_name3,values[3]);
+  //printf("Ending values for %s: %lld\n", event_name0,values[0]);
+  //printf("Ending values for %s: %lld\n", event_name1,values[1]);
+  //printf("Ending values for %s: %lld\n", event_name2,values[2]);
+  //printf("Ending values for %s: %lld\n", event_name3,values[3]);
   
   if ( (retval = PAPI_start(EventSet0)) != PAPI_OK ){
 	printf("failed here 0\n");
@@ -49,7 +49,7 @@ void * timer_interrupt(int intr)
   ptr->num_instructions = values[2];
   ptr->num_cycles = values[3];
 
-  printf("Written\n");
+  //printf("Written\n");
 
   return NULL;
 }
