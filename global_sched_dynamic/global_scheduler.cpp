@@ -464,30 +464,36 @@ int main(int argc, char *argv[])
 
         for(i = 0; i < 34; i++){//print the final mapping before quitting
             printf("on tile %d,", i);
-            if(stats_ptrs[2 * i].type == COMPUTE){
+            if(core_stats[2 * i].type == COMPUTE){
                 printf("compute");
             }
-            else if(stats_ptrs[2 * i].type == LG_MATMUL){
+            else if(core_stats[2 * i].type == LG_MATMUL){
                 printf("lg_matmul");
             }
-            else if(stats_ptrs[2 * i].type == SM_MATMUL){
+            else if(core_stats[2 * i].type == SM_MATMUL){
                 printf("sm_matmul");
             }
-            else if(stats_ptrs[2 * i].type == STREAMING){
+            else if(core_stats[2 * i].type == STREAMING){
                 printf("streaming");
+            }
+            else{
+                printf("type %d", stats_ptrs[2*i].type);
             }
             printf(" is paired with ");
-            if(stats_ptrs[2 * i + 1].type == COMPUTE){
+            if(core_stats[2 * i + 1].type == COMPUTE){
                 printf("compute");
             }
-            else if(stats_ptrs[2 * i + 1].type == LG_MATMUL){
+            else if(core_stats[2 * i + 1].type == LG_MATMUL){
                 printf("lg_matmul");
             }
-            else if(stats_ptrs[2 * i + 1].type == SM_MATMUL){
+            else if(core_stats[2 * i + 1].type == SM_MATMUL){
                 printf("sm_matmul");
             }
-            else if(stats_ptrs[2 * i + 1].type == STREAMING){
+            else if(core_stats[2 * i + 1].type == STREAMING){
                 printf("streaming");
+            }
+            else{
+                printf("type %d", stats_ptrs[2*i+1].type);
             }
             printf("\n");
         }
