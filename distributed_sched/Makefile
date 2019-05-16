@@ -1,16 +1,16 @@
 
 CCP = g++
 CC = gcc
-#CCPFLAGS = -Wall -lpapi -std=c++11 -Wno-write-strings -pthread
-CCPFLAGS = -Wall -lpapi -std=c++11 -Wno-write-strings -pthread -static
+CCPFLAGS = -Wall -lpapi -std=c++11 -Wno-write-strings -pthread
+#CCPFLAGS = -Wall -lpapi -std=c++11 -Wno-write-strings -pthread -static
 CCFLAGS = -Wall -lpapi -Wno-write-strings
 
 SRCS = $(wildcard *.c)
 BINDIR = bin
-INCLUDE = -I/misc/pool6/aniket/parallelism-final-project/papi-5.6.0/src
-LIBS = /misc/pool6/aniket/parallelism-final-project/papi-5.6.0/src
-#INCLUDE = -I/opt/apps/papi/5.6.0/include 
-#LIBS = /opt/apps/papi/5.6.0/lib
+#INCLUDE = -I/misc/pool6/aniket/parallelism-final-project/papi-5.6.0/src
+#LIBS = /misc/pool6/aniket/parallelism-final-project/papi-5.6.0/src
+INCLUDE = -I/opt/apps/papi/5.6.0/include 
+LIBS = /opt/apps/papi/5.6.0/lib
 
 all: c_objs cpp_objs
 	./cp.sh

@@ -61,6 +61,12 @@ void swap_processes(int core_src, int core_dest)
     
     src->mapping_index = map2;
     dest->mapping_index = map1;
+    
+	src->moved_recently = SWAP_INERTIA;
+    dest->moved_recently = SWAP_INERTIA;
+	
+	src->past_l2_mr = (float) (dest->l2_cache_misses)/(float) (dest->l2_cache_accesses);
+    dest->past_l2_mr = (float) (src->l2_cache_misses)/(float) (src->l2_cache_accesses);
 
     int32_t core1 = core_mapping[map1]->core_write_id;
     int32_t core2 = core_mapping[map2]->core_write_id;
@@ -89,13 +95,13 @@ void swap_processes(int core_src, int core_dest)
 }
 
 
-void *global_scheduler(int intr)
+void *distributed_mapper(int intr)
 {
 
     if(my_tile==0 || my_tile==1)
     {
-        int c1 = 2*my_tile;
-        int c2 = 2*my_tile+1;
+        //int c1 = 2*my_tile;
+        //int c2 = 2*my_tile+1;
         
         printf("Trying to acquire locks\n");
         
@@ -129,10 +135,10 @@ void *global_scheduler(int intr)
                 printf("Swapping 0\n");
                 swap_processes(0, 2);
             }
-            if(global_cnt==20 && my_tile==1)
+            if(global_cnt==25 && my_tile==1)
             {
                 printf("Swapping 1\n");
-                swap_processes(0, 2);
+                swap_processes(2, 0);
             }
             sem_post(stats_locks[my_tile]);        
             for(int i=0; i<num_neighbours[my_tile]; i++)
@@ -234,7 +240,6 @@ int main(int argc, char *argv[])
                 break;
             }
         }
-    
 	}
     /* 
     for(int k=num_programs; k<68; k++)
@@ -262,6 +267,7 @@ int main(int argc, char *argv[])
 		if(pid==0) break;
         (&stats_ptrs[initial_affinity[i]])->pid = pid;
         (&stats_ptrs[initial_affinity[i]])->mapping_index = i;
+        (&stats_ptrs[initial_affinity[i]])->moved_recently = SWAP_INERTIA;
 	}
 	
 	if(pid == 0) 
@@ -332,7 +338,7 @@ int main(int argc, char *argv[])
 			struct timeval interval = {0, GLOBAL_SCHED_QUANTUM};
 			struct itimerval timer = {interval, value};
 			
-			signal(SIGALRM, (__sighandler_t) global_scheduler);
+			signal(SIGALRM, (__sighandler_t) distributed_mapper);
 			setitimer(ITIMER_REAL, &timer, 0);
 
 
@@ -346,7 +352,7 @@ int main(int argc, char *argv[])
 			struct timeval interval = {0, GLOBAL_SCHED_QUANTUM};
 			struct itimerval timer = {interval, value};
 			
-			signal(SIGALRM, (__sighandler_t) global_scheduler);
+			signal(SIGALRM, (__sighandler_t) distributed_mapper);
 			setitimer(ITIMER_REAL, &timer, 0);
 			
 				

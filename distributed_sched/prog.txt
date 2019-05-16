@@ -1,4 +1,4 @@
-bin/streaming1 3 0
-bin/streaming2 3 1
-bin/compute_fp 3 2
-bin/lg_matmul 108 3
+bin/streaming1 1 0
+bin/lg_matmul1 36 1
+bin/compute_fp 1 2
+bin/streaming2 1 3

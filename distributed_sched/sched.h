@@ -17,6 +17,8 @@ long long values[4];
 struct stats_struct *stats_ptrs;
 core_write_struct * core_mapping;
 
+int init = 1;
+
 void * timer_interrupt(int intr)
 {
   if ( (retval = PAPI_stop(EventSet0, values) ) != PAPI_OK ){
@@ -25,12 +27,13 @@ void * timer_interrupt(int intr)
   }
 
 
-   
+  /* 
   printf("Ending values for %s: %lld\n", event_name0,values[0]);
   printf("Ending values for %s: %lld\n", event_name1,values[1]);
   printf("Ending values for %s: %lld\n", event_name2,values[2]);
   printf("Ending values for %s: %lld\n", event_name3,values[3]);
- 
+ */
+
   fflush(stdout);
 
   if ( (retval = PAPI_start(EventSet0)) != PAPI_OK ){
@@ -43,14 +46,26 @@ void * timer_interrupt(int intr)
   //stats_struct * ptr = stats_ptrs + sizeof(stats_struct) * (*core_mapping);
   int64_t idx = core_mapping->core_write_id;
   stats_struct *ptr = &stats_ptrs[idx];
-  
+ 
+  if(ptr->moved_recently > 0)
+  {
+	  ptr->moved_recently = ptr->moved_recently - 1;
+  }
+  else
+  {
+	  if(init==1)
+	  {
+	  	ptr->past_l2_mr = (float) ptr->l2_cache_misses/(float) ptr->l2_cache_accesses;
+	  	init = 0;
+	  }
+	  ptr->l2_cache_misses = values[0];
+	  ptr->l2_cache_accesses = values[1];
+	  ptr->num_instructions = values[2];
+	  ptr->num_cycles = values[3];
+  }
 
-  ptr->l2_cache_misses = values[0];
-  ptr->l2_cache_accesses = values[1];
-  ptr->num_instructions = values[2];
-  ptr->num_cycles = values[3];
-
-  printf("Written\n");
+  printf("C-%ld Past L2 miss rate :%f \n", idx, ptr->past_l2_mr);
+  printf("C-%ld Curr L2 miss rate :%f \n", idx, (float)values[0]/(float)values[1]);
 
   return NULL;
 }

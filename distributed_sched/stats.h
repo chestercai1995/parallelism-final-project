@@ -8,6 +8,8 @@
 #define RECORD_STAT_QUANTUM 500000
 #define GLOBAL_SCHED_QUANTUM 500000
 
+#define SWAP_INERTIA 2
+
 enum program_type {UNKNOWN, STREAMING, LG_MATMUL, SM_MATMUL, COMPUTE}; 
 enum status {GOOD, BAD, WASTE};
 
@@ -101,7 +103,7 @@ struct stats_struct
     program_type type;
     status stat; 
 
-    int32_t padding;
+    float past_l2_mr;
 
 };
 
