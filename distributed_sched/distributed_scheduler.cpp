@@ -42,7 +42,8 @@ int startup_latency = STARTUP_LATENCY;
 int alt = 0;
 
 int level2_sched_cnt = 0;
-int nt_list[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
+int level3_sched_cnt = 0;
+int nt_list[9] = {-1, -1, -1, -1, -1, -1, -1, -1, -1};
 
 /* =========================================== */
 
@@ -161,6 +162,16 @@ void *distributed_mapper(int intr)
         //printf("Trying to acquire locks\n");
     
 		int num_nt = 0;
+		if(level3_sched_cnt==LEVEL3_MAP_QUANTUM)
+		{
+			printf("L3---------\n");
+			num_nt = num_neighbours3[my_tile];
+			for(int i=0; i<num_nt; i++)
+			{
+				nt_list[i] = neighbours3[my_tile][i];
+			}
+			level3_sched_cnt = 0;
+		}
 		if(level2_sched_cnt==LEVEL2_MAP_QUANTUM)
 		{
 			printf("L2---------\n");
@@ -170,6 +181,7 @@ void *distributed_mapper(int intr)
 				nt_list[i] = neighbours2[my_tile][i];
 			}
 			level2_sched_cnt = 0;
+			level3_sched_cnt++;
 		}
 		else
 		{
@@ -179,7 +191,9 @@ void *distributed_mapper(int intr)
 				nt_list[i] = neighbours[my_tile][i];
 			}
 			level2_sched_cnt++;
+			level3_sched_cnt++;
 		}
+
         int my_lock = sem_trywait(stats_locks[my_tile]);
        
         int n_locks = 0;
@@ -237,43 +251,49 @@ void *distributed_mapper(int intr)
 					printf("My types %d %d\n", prog1, prog2);
 					printf("Mapping %d\n", mapping_type);
 					printf("Neighbour %d %d types %d %d\n", c1_n, c2_n, prog1_n, prog2_n);
-					
-					int swap1_1 = is_good_mapping(prog1_n, prog2);
-					int swap1_2 = is_good_mapping(prog2_n, prog1);
+			
+					int neighbour_mapping = is_good_mapping(prog1_n, prog2_n);
 
-					int swap2_1 = is_good_mapping(prog1_n, prog1);
-					int swap2_2 = is_good_mapping(prog2_n, prog2);
+					if(neighbour_mapping != 0)
+					{
 
-					printf("Mapping pot %d %d %d %d\n", swap1_1, swap1_2, swap2_1, swap2_2);
-					
-					if(swap1_1==0 || swap1_2==0)
-					{
-						if(mapping_type==1)
+						int swap1_1 = is_good_mapping(prog1_n, prog2);
+						int swap1_2 = is_good_mapping(prog2_n, prog1);
+
+						int swap2_1 = is_good_mapping(prog1_n, prog1);
+						int swap2_2 = is_good_mapping(prog2_n, prog2);
+
+						printf("Mapping pot %d %d %d %d\n", swap1_1, swap1_2, swap2_1, swap2_2);
+						
+						if(swap1_1==0 || swap1_2==0)
 						{
-							printf("************Swapping %d and %d\n", c1, c1_n);
-							swap_processes(c1, c1_n);
-							break;
+							if(mapping_type==1)
+							{
+								printf("************Swapping %d and %d\n", c1, c1_n);
+								swap_processes(c1, c1_n);
+								break;
+							}
+							else
+							{
+								printf("************Swapping %d and %d\n", c2, c2_n);
+								swap_processes(c2, c2_n);
+								break;
+							}
 						}
-						else
+						else if(swap2_1==0 || swap2_2==0)
 						{
-							printf("************Swapping %d and %d\n", c2, c2_n);
-							swap_processes(c2, c2_n);
-							break;
-						}
-					}
-					else if(swap2_1==0 || swap2_2==0)
-					{
-						if(mapping_type==1)
-						{
-							printf("************Swapping %d and %d\n", c1, c2_n);
-							swap_processes(c1, c2_n);
-							break;
-						}
-						else
-						{
-							printf("************Swapping %d and %d\n", c2, c1_n);
-							swap_processes(c2, c1_n);
-							break;
+							if(mapping_type==1)
+							{
+								printf("************Swapping %d and %d\n", c1, c2_n);
+								swap_processes(c1, c2_n);
+								break;
+							}
+							else
+							{
+								printf("************Swapping %d and %d\n", c2, c1_n);
+								swap_processes(c2, c1_n);
+								break;
+							}
 						}
 					}
 					
