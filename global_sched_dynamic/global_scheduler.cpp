@@ -308,6 +308,10 @@ void *global_scheduler(int intr)
             printf("*****************************\n");
             printf("trying to swap %d with %d\n", i, found);
             printf("*****************************\n");
+            core_stats[i].stat=GOOD;
+            core_stats[findNeighborIndex(i)].stat=GOOD;
+            core_stats[findNeighborIndex(found)].stat=GOOD;
+            core_stats[found].stat=GOOD;
             swap_processes(i, found);
         }
 	}

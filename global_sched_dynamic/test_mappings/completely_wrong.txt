@@ -21,7 +21,7 @@ bin/sm_matmul3 4500 36
 bin/sm_matmul4 4500 37
 bin/sm_matmul5 4500 38
 bin/sm_matmul6 4500 39
-bin/sm_matmul7 4500 30
+bin/sm_matmul7 4500 40
 bin/sm_matmul8 4500 41
 bin/sm_matmul9 4500 50
 bin/sm_matmul10 4500 52
