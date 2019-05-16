@@ -38,6 +38,8 @@ int my_tile = 0;
 
 int global_cnt = 0;
 
+int startup_latency = STARTUP_LATENCY;
+
 /* =========================================== */
 
 void swap_processes(int core_src, int core_dest)
@@ -94,14 +96,59 @@ void swap_processes(int core_src, int core_dest)
 
 }
 
+inline program_type update_type(stats_struct *ptr)
+{
+  	if(ptr->l2_cache_accesses > 1500000){//larger than 1.5M, mark it as ST
+		ptr->type = STREAMING;
+		return STREAMING;
+	}
+	else if(ptr->l2_cache_accesses > 130000){//larger than 130k marking it as LG
+	   ptr->type = LG_MATMUL;
+		return LG_MATMUL;
+	}
+	else if(ptr->l2_cache_accesses > 10000){
+		ptr->type = SM_MATMUL;    
+		return SM_MATMUL;
+	}
+	else{
+		ptr->type = COMPUTE;    
+		return COMPUTE;
+	}
+}
+
+//0 nothing
+//1 swap 1
+//2 swap 2
+//3 maybe swap 1
+//4 maybe swap 2
+inline int is_good_mapping(program_type prog1, program_type prog2)
+{
+	if(prog1 == STREAMING && prog2 == STREAMING) return 0;
+	else if(prog1 == STREAMING && prog2 == SM_MATMUL) return 0;
+	else if(prog1 == STREAMING && prog2 == LG_MATMUL) return 1;
+	else if(prog1 == STREAMING && prog2 == COMPUTE) return 3;
+	else if(prog1 == SM_MATMUL && prog2 == STREAMING) return 0;
+	else if(prog1 == SM_MATMUL && prog2 == SM_MATMUL) return 3;
+	else if(prog1 == SM_MATMUL && prog2 == LG_MATMUL) return 3;
+	else if(prog1 == SM_MATMUL && prog2 == COMPUTE) return 4;
+	else if(prog1 == LG_MATMUL && prog2 == STREAMING) return 2;
+	else if(prog1 == LG_MATMUL && prog2 == SM_MATMUL) return 4;
+	else if(prog1 == LG_MATMUL && prog2 == LG_MATMUL) return 1;
+	else if(prog1 == LG_MATMUL && prog2 == COMPUTE) return 0;
+	else if(prog1 == COMPUTE && prog2 == STREAMING) return 4;
+	else if(prog1 == COMPUTE && prog2 == SM_MATMUL) return 3;
+	else if(prog1 == COMPUTE && prog2 == LG_MATMUL) return 0;
+	else if(prog1 == COMPUTE && prog2 == COMPUTE) return 1;
+	else return 0;		
+	
+	
+}
 
 void *distributed_mapper(int intr)
 {
 
-    if(my_tile==0 || my_tile==1)
+    if((my_tile==0 || my_tile==1) && startup_latency==0)
     {
-        //int c1 = 2*my_tile;
-        //int c2 = 2*my_tile+1;
         
         printf("Trying to acquire locks\n");
         
@@ -114,32 +161,98 @@ void *distributed_mapper(int intr)
             n_locks = n_locks || sem_trywait(stats_locks[neighbouring_tile]);
         }
 
+		//Can optimize here
         if((n_locks||my_lock)==0)
         {
             printf("%d acquired locks:", my_tile);
             for(int i=0; i<num_neighbours[my_tile]; i++)
             {
                 int neighbouring_tile = neighbours[my_tile][i]; 
-                printf("%d,\n", neighbouring_tile);
+                printf("%d,", neighbouring_tile);
             }
             printf("\n");
 
             // Now that we've acquired locks, look at the program classes for 
             // the neighbouring programs. If a good match is found, swap.
-            // 
-            
+           
+			//update my type
+			int c1 = 2*my_tile;
+			int c2 = 2*my_tile+1;
+			stats_struct * my_stats1 = &stats_ptrs[c1];
+			stats_struct * my_stats2 = &stats_ptrs[c2];
+			program_type prog1 = update_type(my_stats1);
+			program_type prog2 = update_type(my_stats2);
 
-            //All locks succeeded
-            if(global_cnt==10 && my_tile==0)
-            {
-                printf("Swapping 0\n");
-                swap_processes(0, 2);
-            }
-            if(global_cnt==25 && my_tile==1)
-            {
-                printf("Swapping 1\n");
-                swap_processes(2, 0);
-            }
+			if(!(my_stats1->moved_recently || my_stats2->moved_recently))
+			{
+
+			//Only actively look to swap if you're not doing so well
+			//Later, add potential. Look to swap if potential is good
+		
+			printf("My types %d %d\n", prog1, prog2);
+
+			int mapping_type = is_good_mapping(prog1, prog2);
+			printf("Mapping %d\n", mapping_type);
+			
+			if(mapping_type==1 || mapping_type==2)
+			{
+				int swap_candidate = (mapping_type+1)%2;
+				printf("%d, %d\n", my_tile, num_neighbours[my_tile]);
+				for(int i=0; i<num_neighbours[my_tile]; i++)
+				{
+					int neighbouring_tile = neighbours[my_tile][i];
+					int c1_n = 2*neighbouring_tile;
+					int c2_n = 2*neighbouring_tile+1;
+					program_type prog1_n = (&stats_ptrs[c1_n])->type;
+					program_type prog2_n = (&stats_ptrs[c2_n])->type;
+		
+					if(prog1_n==UNKNOWN || prog2_n==UNKNOWN) continue;
+					printf("Neighbour %d %d types %d %d\n", c1_n, c2_n, prog1_n, prog2_n);
+					
+					int swap1_1 = is_good_mapping(prog1_n, prog2);
+					int swap1_2 = is_good_mapping(prog2_n, prog1);
+
+					int swap2_1 = is_good_mapping(prog1_n, prog1);
+					int swap2_2 = is_good_mapping(prog2_n, prog2);
+
+					printf("Mapping pot %d %d %d %d\n", swap1_1, swap1_2, swap2_1, swap2_2);
+					
+					if(swap1_1==0 || swap1_2==0)
+					{
+						if(swap_candidate==0)
+						{
+							printf("Swapping %d and %d\n", c1, c1_n);
+							swap_processes(c1, c1_n);
+							break;
+						}
+						else
+						{
+							printf("Swapping %d and %d\n", c2, c2_n);
+							swap_processes(c2, c2_n);
+							break;
+						}
+					}
+					else if(swap2_1==0 || swap2_2==0)
+					{
+						if(swap_candidate==0)
+						{
+							printf("Swapping %d and %d\n", c1, c2_n);
+							swap_processes(c1, c2_n);
+							break;
+						}
+						else
+						{
+							printf("Swapping %d and %d\n", c2, c1_n);
+							swap_processes(c2, c1_n);
+							break;
+						}
+					}
+					
+
+				}
+			}
+			}
+			
             sem_post(stats_locks[my_tile]);        
             for(int i=0; i<num_neighbours[my_tile]; i++)
             {
@@ -148,8 +261,11 @@ void *distributed_mapper(int intr)
             }
             printf("released locks\n");
         }
-        global_cnt++;
     }
+	else
+	{
+		startup_latency--;
+	}
 
     int i = 2*my_tile; 
 
