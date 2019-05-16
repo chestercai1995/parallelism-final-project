@@ -51,8 +51,8 @@ void * timer_interrupt(int intr)
   {
 	  ptr->moved_recently = ptr->moved_recently - 1;
   }
-  else
-  {
+  //else
+  //{
 	  if(init==1)
 	  {
 	  	ptr->past_l2_mr = (float) ptr->l2_cache_misses/(float) ptr->l2_cache_accesses;
@@ -62,7 +62,7 @@ void * timer_interrupt(int intr)
 	  ptr->l2_cache_accesses = values[1];
 	  ptr->num_instructions = values[2];
 	  ptr->num_cycles = values[3];
-  }
+  //}
 
   printf("C-%ld Past L2 miss rate :%f \n", idx, ptr->past_l2_mr);
   printf("C-%ld Curr L2 miss rate :%f \n", idx, (float)values[0]/(float)values[1]);

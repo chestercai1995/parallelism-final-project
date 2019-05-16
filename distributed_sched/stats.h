@@ -8,12 +8,14 @@
 #define RECORD_STAT_QUANTUM 500000
 #define GLOBAL_SCHED_QUANTUM 500000
 
-#define SWAP_INERTIA 2
+
+#define SWAP_INERTIA 5
+#define STARTUP_LATENCY 5
 
 enum program_type {UNKNOWN, STREAMING, LG_MATMUL, SM_MATMUL, COMPUTE}; 
 enum status {GOOD, BAD, WASTE};
 
-int neighbours[34][4] = 
+static const int neighbours[34][4] = 
                  {  {4, 1, -1, -1},
                     {0, 5, -1, -1},
                     {8, 3, -1, -1},
@@ -49,7 +51,7 @@ int neighbours[34][4] =
                     {31, 33, 26, -1},
                     {32, 27, -1, -1}    };
 
-int num_neighbours[34] = 
+static const int num_neighbours[34] = 
                     {   2,
                         2,
                         2,
