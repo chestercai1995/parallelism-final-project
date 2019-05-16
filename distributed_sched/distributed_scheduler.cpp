@@ -39,6 +39,10 @@ int my_tile = 0;
 int global_cnt = 0;
 
 int startup_latency = STARTUP_LATENCY;
+int alt = 0;
+
+int level2_sched_cnt = 0;
+int nt_list[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
 
 /* =========================================== */
 
@@ -146,24 +150,50 @@ inline int is_good_mapping(program_type prog1, program_type prog2)
 
 void *distributed_mapper(int intr)
 {
+	
+	//if(my_tile%2==alt)
+	//{
 
-    if((my_tile==0 || my_tile==1) && startup_latency==0)
+    //if((my_tile==0 || my_tile==1) && startup_latency==0)
+    if(startup_latency==0)
     {
         
-        printf("Trying to acquire locks\n");
-        
+        //printf("Trying to acquire locks\n");
+    
+		int num_nt = 0;
+		if(level2_sched_cnt==LEVEL2_MAP_QUANTUM)
+		{
+			printf("L2---------\n");
+			num_nt = num_neighbours2[my_tile];
+			for(int i=0; i<num_nt; i++)
+			{
+				nt_list[i] = neighbours2[my_tile][i];
+			}
+			level2_sched_cnt = 0;
+		}
+		else
+		{
+			num_nt = num_neighbours[my_tile];
+			for(int i=0; i<num_nt; i++)
+			{
+				nt_list[i] = neighbours[my_tile][i];
+			}
+			level2_sched_cnt++;
+		}
         int my_lock = sem_trywait(stats_locks[my_tile]);
        
         int n_locks = 0;
-        for(int i=0; i<num_neighbours[my_tile]; i++)
+        for(int i=0; i<num_nt; i++)
         {
-            int neighbouring_tile = neighbours[my_tile][i]; 
+            int neighbouring_tile = nt_list[i]; 
             n_locks = n_locks || sem_trywait(stats_locks[neighbouring_tile]);
-        }
+		}
 
+		//printf("L %d\n", n_locks);
 		//Can optimize here
         if((n_locks||my_lock)==0)
         {
+			/*
             printf("%d acquired locks:", my_tile);
             for(int i=0; i<num_neighbours[my_tile]; i++)
             {
@@ -171,7 +201,7 @@ void *distributed_mapper(int intr)
                 printf("%d,", neighbouring_tile);
             }
             printf("\n");
-
+			*/
             // Now that we've acquired locks, look at the program classes for 
             // the neighbouring programs. If a good match is found, swap.
            
@@ -189,24 +219,23 @@ void *distributed_mapper(int intr)
 			//Only actively look to swap if you're not doing so well
 			//Later, add potential. Look to swap if potential is good
 		
-			printf("My types %d %d\n", prog1, prog2);
 
 			int mapping_type = is_good_mapping(prog1, prog2);
-			printf("Mapping %d\n", mapping_type);
 			
 			if(mapping_type==1 || mapping_type==2)
 			{
-				int swap_candidate = (mapping_type+1)%2;
-				printf("%d, %d\n", my_tile, num_neighbours[my_tile]);
-				for(int i=0; i<num_neighbours[my_tile]; i++)
+				printf("%d, %d\n", my_tile, num_nt);
+				for(int i=0; i<num_nt; i++)
 				{
-					int neighbouring_tile = neighbours[my_tile][i];
+					int neighbouring_tile = nt_list[i];
 					int c1_n = 2*neighbouring_tile;
 					int c2_n = 2*neighbouring_tile+1;
 					program_type prog1_n = (&stats_ptrs[c1_n])->type;
 					program_type prog2_n = (&stats_ptrs[c2_n])->type;
 		
 					if(prog1_n==UNKNOWN || prog2_n==UNKNOWN) continue;
+					printf("My types %d %d\n", prog1, prog2);
+					printf("Mapping %d\n", mapping_type);
 					printf("Neighbour %d %d types %d %d\n", c1_n, c2_n, prog1_n, prog2_n);
 					
 					int swap1_1 = is_good_mapping(prog1_n, prog2);
@@ -219,30 +248,30 @@ void *distributed_mapper(int intr)
 					
 					if(swap1_1==0 || swap1_2==0)
 					{
-						if(swap_candidate==0)
+						if(mapping_type==1)
 						{
-							printf("Swapping %d and %d\n", c1, c1_n);
+							printf("************Swapping %d and %d\n", c1, c1_n);
 							swap_processes(c1, c1_n);
 							break;
 						}
 						else
 						{
-							printf("Swapping %d and %d\n", c2, c2_n);
+							printf("************Swapping %d and %d\n", c2, c2_n);
 							swap_processes(c2, c2_n);
 							break;
 						}
 					}
 					else if(swap2_1==0 || swap2_2==0)
 					{
-						if(swap_candidate==0)
+						if(mapping_type==1)
 						{
-							printf("Swapping %d and %d\n", c1, c2_n);
+							printf("************Swapping %d and %d\n", c1, c2_n);
 							swap_processes(c1, c2_n);
 							break;
 						}
 						else
 						{
-							printf("Swapping %d and %d\n", c2, c1_n);
+							printf("************Swapping %d and %d\n", c2, c1_n);
 							swap_processes(c2, c1_n);
 							break;
 						}
@@ -254,13 +283,25 @@ void *distributed_mapper(int intr)
 			}
 			
             sem_post(stats_locks[my_tile]);        
-            for(int i=0; i<num_neighbours[my_tile]; i++)
+            for(int i=0; i<num_nt; i++)
             {
-                int neighbouring_tile = neighbours[my_tile][i];
+                int neighbouring_tile = nt_list[i];
                 sem_post(stats_locks[neighbouring_tile]);
             }
-            printf("released locks\n");
+            //printf("released locks\n");
         }
+		else //release all acquired locks
+		{
+			for(int i=0; i<num_nt; i++)
+            {
+                int neighbouring_tile = nt_list[i];
+				int val;
+				sem_getvalue(stats_locks[neighbouring_tile], &val);
+                if(val==0) sem_post(stats_locks[neighbouring_tile]);
+            }
+		
+			
+		}
     }
 	else
 	{
@@ -269,8 +310,8 @@ void *distributed_mapper(int intr)
 
     int i = 2*my_tile; 
 
-    if(my_tile==1 || my_tile==0){
-
+    //if(my_tile==1 || my_tile==0){
+	/*
 		printf("Reading from Proc %d :", i);
 		stats_struct * ptr = &stats_ptrs[i];
 		printf("%ld, %ld, %ld, %ld\n", ptr->l2_cache_misses, ptr->l2_cache_accesses, ptr->num_instructions, ptr->num_cycles);
@@ -280,12 +321,15 @@ void *distributed_mapper(int intr)
         printf("Reading from Proc %d :", i);
 		ptr = &stats_ptrs[i];
 		printf("%ld, %ld, %ld, %ld\n", ptr->l2_cache_misses, ptr->l2_cache_accesses, ptr->num_instructions, ptr->num_cycles);
-
+	*/
     
-    }
+    //}
 
-
-
+	//	alt = 0;
+	//}
+	//else {
+	//	alt = 1;
+	//}
 
 	return NULL;
 }
@@ -366,7 +410,7 @@ int main(int argc, char *argv[])
     */
     for(int i=0; i<34; i++)
     {
-        stats_locks[i] = sem_open((char*) to_string(i).c_str(), O_CREAT, 0666, 1);
+        stats_locks[i] = sem_open((char*) to_string((i+1)*100).c_str(), O_CREAT, 0644, 1);
     }
     
 
@@ -444,7 +488,7 @@ int main(int argc, char *argv[])
             */
             for(int i=0; i<34; i++)
             {
-                stats_locks[i] = sem_open((char*) to_string(i).c_str(), O_CREAT, 0666, 1);
+                stats_locks[i] = sem_open((char*) to_string((i+1)*100).c_str(), O_CREAT, 0644, 1);
             }
 
 			
@@ -489,7 +533,22 @@ int main(int argc, char *argv[])
                 printf("returned %d\n", kill(child_scheds.back(), SIGKILL));
 				child_scheds.pop_back();
 			}
-				
+			
+			ofstream res_file;
+			res_file.open("run_results");
+			
+			for(int i=0; i<68; i++)
+			{
+				int64_t ca = (&stats_ptrs[i])->l2_cache_accesses;
+				int32_t pi = (&stats_ptrs[i])->pid;
+				int32_t mi = (&stats_ptrs[i])->mapping_index;
+				program_type pt = (&stats_ptrs[i])->type;
+
+				res_file << i << " CA "<< ca << " PID " << pi << " MI "<< mi << " PT " << pt << "\n";
+			}
+
+			res_file.close();
+
             detach_shared_mem(stats_ptrs);
             destroy_shared_mem(&shmid);
 
@@ -497,6 +556,10 @@ int main(int argc, char *argv[])
 			{
 				detach_shared_mem(core_mapping[i]);
 				destroy_shared_mem(&shmids[i]);
+			}
+			for(int i=0; i<34; i++)
+			{
+				sem_destroy(stats_locks[i]);
 			}
 			printf("Parent\n");
 	

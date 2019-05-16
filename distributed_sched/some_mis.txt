@@ -14,12 +14,12 @@ bin/streaming13 10 24
 bin/streaming14 10 25
 bin/streaming15 10 28
 bin/streaming16 10 29
-bin/streaming17 10 32
+bin/streaming17 10 64
 bin/sm_matmul1 4500 33
 bin/sm_matmul2 4500 36
 bin/sm_matmul3 4500 37
 bin/sm_matmul4 4500 40
-bin/sm_matmul5 4500 41
+bin/sm_matmul5 4500 43
 bin/sm_matmul6 4500 44
 bin/sm_matmul7 4500 45
 bin/sm_matmul8 4500 48
@@ -30,7 +30,7 @@ bin/sm_matmul12 4500 56
 bin/sm_matmul13 4500 57
 bin/sm_matmul14 4500 60
 bin/sm_matmul15 4500 61
-bin/sm_matmul16 4500 64
+bin/sm_matmul16 4500 32
 bin/sm_matmul17 4500 65
 bin/compute_fp1 11 2
 bin/compute_fp2 11 6
@@ -48,7 +48,7 @@ bin/compute_fp13 11 50
 bin/compute_fp14 11 54
 bin/compute_fp15 11 58
 bin/compute_fp16 11 62
-bin/compute_fp17 11 66
+bin/compute_fp17 11 63
 bin/lg_matmul1 70 3
 bin/lg_matmul2 70 7
 bin/lg_matmul3 70 11
@@ -59,10 +59,10 @@ bin/lg_matmul7 70 27
 bin/lg_matmul8 70 31
 bin/lg_matmul9 70 35
 bin/lg_matmul10 70 39
-bin/lg_matmul11 70 43
+bin/lg_matmul11 70 41
 bin/lg_matmul12 70 47
 bin/lg_matmul13 70 51
 bin/lg_matmul14 70 55
 bin/lg_matmul15 70 59
-bin/lg_matmul16 70 63
+bin/lg_matmul16 70 66
 bin/lg_matmul17 70 67

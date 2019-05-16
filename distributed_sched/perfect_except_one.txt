@@ -1,5 +1,5 @@
 bin/streaming1 10 0
-bin/streaming2 10 1
+bin/streaming2 10 2
 bin/streaming3 10 4
 bin/streaming4 10 5
 bin/streaming5 10 8
@@ -32,7 +32,7 @@ bin/sm_matmul14 4500 60
 bin/sm_matmul15 4500 61
 bin/sm_matmul16 4500 64
 bin/sm_matmul17 4500 65
-bin/compute_fp1 11 2
+bin/compute_fp1 11 1
 bin/compute_fp2 11 6
 bin/compute_fp3 11 10
 bin/compute_fp4 11 14
