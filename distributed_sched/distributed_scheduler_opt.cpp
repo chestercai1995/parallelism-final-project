@@ -205,67 +205,68 @@ void *distributed_mapper(int intr)
 		*/
 		// Now that we've acquired locks, look at the program classes for 
 		// the neighbouring programs. If a good match is found, swap.
-	   
-		//update my type
-		int c1 = 2*my_tile;
-		int c2 = 2*my_tile+1;
-		stats_struct * my_stats1 = &stats_ptrs[c1];
-		stats_struct * my_stats2 = &stats_ptrs[c2];
-		program_type prog1 = update_type(my_stats1);
-		program_type prog2 = update_type(my_stats2);
-
-		if(!(my_stats1->moved_recently || my_stats2->moved_recently))
-		{
-
-		//Only actively look to swap if you're not doing so well
-		//Later, add potential. Look to swap if potential is good
-	
-
-			int mapping_type = is_good_mapping(prog1, prog2);
-			
-			if(mapping_type==1 || mapping_type==2)
-			{
-				printf("%d, %d\n", my_tile, num_nt);
-				for(int i=0; i<num_nt; i++)
-				{
-					int neighbouring_tile = nt_list[i];
-					int c1_n = 2*neighbouring_tile;
-					int c2_n = 2*neighbouring_tile+1;
-					program_type prog1_n = (&stats_ptrs[c1_n])->type;
-					program_type prog2_n = (&stats_ptrs[c2_n])->type;
-		
-					if(prog1_n==UNKNOWN || prog2_n==UNKNOWN) continue;
-					printf("My types %d %d\n", prog1, prog2);
-					printf("Mapping %d\n", mapping_type);
-					printf("Neighbour %d %d types %d %d\n", c1_n, c2_n, prog1_n, prog2_n);
-			
-					int neighbour_mapping = is_good_mapping(prog1_n, prog2_n);
-
-					if(neighbour_mapping != 0)
-					{
-
-						int swap1_1 = is_good_mapping(prog1_n, prog2);
-						int swap1_2 = is_good_mapping(prog2_n, prog1);
-
-						int swap2_1 = is_good_mapping(prog1_n, prog1);
-						int swap2_2 = is_good_mapping(prog2_n, prog2);
-
-						printf("Mapping pot %d %d %d %d\n", swap1_1, swap1_2, swap2_1, swap2_2);
 						
-						int my_lock = sem_trywait(stats_locks[my_tile]);
+		int my_lock = sem_trywait(stats_locks[my_tile]);
 					   
-						int n_locks = 0;
-						for(int i=0; i<num_nt; i++)
-						{
-							int neighbouring_tile = nt_list[i]; 
-							n_locks = n_locks || sem_trywait(stats_locks[neighbouring_tile]);
-						}
+		int n_locks = 0;
+		for(int i=0; i<num_nt; i++)
+		{
+			int neighbouring_tile = nt_list[i]; 
+			n_locks = n_locks || sem_trywait(stats_locks[neighbouring_tile]);
+		}
 
-						printf("L %d\n", n_locks);
-						//Can optimize here
-						if((n_locks||my_lock)==0)
+		//printf("L %d\n", n_locks);
+		//Can optimize here
+		if((n_locks||my_lock)==0)
+		{
+	   
+			//update my type
+			int c1 = 2*my_tile;
+			int c2 = 2*my_tile+1;
+			stats_struct * my_stats1 = &stats_ptrs[c1];
+			stats_struct * my_stats2 = &stats_ptrs[c2];
+			program_type prog1 = update_type(my_stats1);
+			program_type prog2 = update_type(my_stats2);
+
+			if(!(my_stats1->moved_recently || my_stats2->moved_recently))
+			{
+
+			//Only actively look to swap if you're not doing so well
+			//Later, add potential. Look to swap if potential is good
+		
+
+				int mapping_type = is_good_mapping(prog1, prog2);
+				
+				if(mapping_type==1 || mapping_type==2)
+				{
+					printf("%d, %d\n", my_tile, num_nt);
+					for(int i=0; i<num_nt; i++)
+					{
+						int neighbouring_tile = nt_list[i];
+						int c1_n = 2*neighbouring_tile;
+						int c2_n = 2*neighbouring_tile+1;
+						program_type prog1_n = (&stats_ptrs[c1_n])->type;
+						program_type prog2_n = (&stats_ptrs[c2_n])->type;
+			
+						if(prog1_n==UNKNOWN || prog2_n==UNKNOWN) continue;
+						printf("My types %d %d\n", prog1, prog2);
+						printf("Mapping %d\n", mapping_type);
+						printf("Neighbour %d %d types %d %d\n", c1_n, c2_n, prog1_n, prog2_n);
+				
+						int neighbour_mapping = is_good_mapping(prog1_n, prog2_n);
+
+						if(neighbour_mapping != 0)
 						{
-						
+
+							int swap1_1 = is_good_mapping(prog1_n, prog2);
+							int swap1_2 = is_good_mapping(prog2_n, prog1);
+
+							int swap2_1 = is_good_mapping(prog1_n, prog1);
+							int swap2_2 = is_good_mapping(prog2_n, prog2);
+
+							printf("Mapping pot %d %d %d %d\n", swap1_1, swap1_2, swap2_1, swap2_2);
+							
+							
 							if(swap1_1==0 || swap1_2==0)
 							{
 								if(mapping_type==1)
@@ -298,37 +299,40 @@ void *distributed_mapper(int intr)
 							}
 
 
-							sem_post(stats_locks[my_tile]);        
-							for(int i=0; i<num_nt; i++)
-							{
-								int neighbouring_tile = nt_list[i];
-								sem_post(stats_locks[neighbouring_tile]);
-							}
-							//printf("released locks\n");
 
 						}
-						else //release all acquired locks
-						{
-							int val;
-							sem_getvalue(stats_locks[my_tile], &val);
-							if(val==0) sem_post(stats_locks[my_tile]);
+								
+						
 
-							for(int i=0; i<num_nt; i++)
-							{
-								int neighbouring_tile = nt_list[i];
-								sem_getvalue(stats_locks[neighbouring_tile], &val);
-								if(val==0) sem_post(stats_locks[neighbouring_tile]);
-							}
-							
-						}
 					}
-					
-
 				}
+
 			}
 			
+			sem_post(stats_locks[my_tile]);        
+			for(int i=0; i<num_nt; i++)
+			{
+				int neighbouring_tile = nt_list[i];
+				sem_post(stats_locks[neighbouring_tile]);
+			}
+			//printf("released locks\n");
+		}		
+		
+		else //release all acquired locks
+		{
+			int val;
+			sem_getvalue(stats_locks[my_tile], &val);
+			if(val==0) sem_post(stats_locks[my_tile]);
+
+			for(int i=0; i<num_nt; i++)
+			{
+				int neighbouring_tile = nt_list[i];
+				sem_getvalue(stats_locks[neighbouring_tile], &val);
+				if(val==0) sem_post(stats_locks[neighbouring_tile]);
+			}
+		}
 			
-        }
+				
     }
 	else
 	{
