@@ -1,0 +1,8 @@
+
+perf LINUX: 20167.94user 129.49system 9:47.57elapsed 3454%CPU
+cwro DIST:  18226.37user 127.01system 8:23.57elapsed 3644%CPU
+perf STAT:  18713.52user 129.46system 8:23.04elapsed 3745%CPU
+
+cwro LINUX: 20356.92user 132.57system 10:06.24elapsed 3379%CPU
+cwro STAT:  18737.94user 126.45system 8:28.08elapsed 3712%CPU
+cwro DIST:  18226.37user 127.01system 8:23.57elapsed 3644%CPU

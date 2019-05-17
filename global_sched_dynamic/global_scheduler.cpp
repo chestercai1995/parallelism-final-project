@@ -13,8 +13,8 @@
 #include "shm.h"
 #include "stats.h"
 
-#define CYCLES_AFTER_MOVE 5
-#define INIT_CYCLES 5
+#define CYCLES_AFTER_MOVE 2
+#define INIT_CYCLES 2
 
 using namespace std;
 
@@ -186,13 +186,13 @@ void *global_scheduler(int intr)
                 //new phase
                 core_stats[i].type  = UNDETERMINED;
             }
-            if(compVar(i)>0.10){//lg
+			else if(compVar(i)>0.10){//lg
                 core_stats[i].type  = LG_MATMUL;
             }
-            if(compVar(i)>0.05){//sm
+			else if(compVar(i)>0.05){//sm
                 core_stats[i].type  = SM_MATMUL;
             }
-            if(compVar(i)>0.01){//st
+			else {//st
                 core_stats[i].type  = STREAMING;
             }
         }
@@ -573,6 +573,7 @@ void *global_scheduler(int intr)
                     }
                     
                 }
+			}
 		}
         if(found != -1){
             printf("*****************************\n");
@@ -615,7 +616,7 @@ void *global_scheduler(int intr)
 		//if(shm_ptrs[i]!=NULL)
 		//{
 			//printf("Reading from Proc %d :", i);
-			memcpy(&core_stats[i], &stats_ptrs[i], sizeof(stats_struct));
+		memcpy(&core_stats[i], &stats_ptrs[i], sizeof(stats_struct));
 			//printf("%ld, %ld, %ld, %ld, %ld\n", core_stats[i].l2_cache_misses, core_stats[i].l2_cache_accesses, core_stats[i].num_instructions, core_stats[i].num_cycles, core_stats[i].num_ref_cycles);
 		//}
 	}

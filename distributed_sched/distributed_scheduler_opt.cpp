@@ -239,7 +239,7 @@ void *distributed_mapper(int intr)
 				
 				if(mapping_type==1 || mapping_type==2)
 				{
-					printf("%d, %d\n", my_tile, num_nt);
+					//printf("%d, %d\n", my_tile, num_nt);
 					for(int i=0; i<num_nt; i++)
 					{
 						int neighbouring_tile = nt_list[i];
@@ -249,9 +249,9 @@ void *distributed_mapper(int intr)
 						program_type prog2_n = (&stats_ptrs[c2_n])->type;
 			
 						if(prog1_n==UNKNOWN || prog2_n==UNKNOWN) continue;
-						printf("My types %d %d\n", prog1, prog2);
-						printf("Mapping %d\n", mapping_type);
-						printf("Neighbour %d %d types %d %d\n", c1_n, c2_n, prog1_n, prog2_n);
+						//printf("My types %d %d\n", prog1, prog2);
+						//printf("Mapping %d\n", mapping_type);
+						//printf("Neighbour %d %d types %d %d\n", c1_n, c2_n, prog1_n, prog2_n);
 				
 						int neighbour_mapping = is_good_mapping(prog1_n, prog2_n);
 
@@ -264,7 +264,7 @@ void *distributed_mapper(int intr)
 							int swap2_1 = is_good_mapping(prog1_n, prog1);
 							int swap2_2 = is_good_mapping(prog2_n, prog2);
 
-							printf("Mapping pot %d %d %d %d\n", swap1_1, swap1_2, swap2_1, swap2_2);
+							//printf("Mapping pot %d %d %d %d\n", swap1_1, swap1_2, swap2_1, swap2_2);
 							
 							
 							if(swap1_1==0 || swap1_2==0)

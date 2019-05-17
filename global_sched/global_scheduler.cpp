@@ -279,8 +279,8 @@ int main(int argc, char *argv[])
 		struct timeval interval = {0, GLOBAL_SCHED_QUANTUM};
 		struct itimerval timer = {interval, value};
 		
-		signal(SIGALRM, (__sighandler_t) global_scheduler);
-		setitimer(ITIMER_REAL, &timer, 0);
+		//signal(SIGALRM, (__sighandler_t) global_scheduler);
+		//setitimer(ITIMER_REAL, &timer, 0);
 		
 			
 		
