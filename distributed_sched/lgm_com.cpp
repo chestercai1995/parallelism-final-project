@@ -342,10 +342,6 @@ void intialize_matrix(float** Q, int m, int n) {
 
 int main(int argc, char *argv[])
 {
-	if(argc!=2) {
-		printf("Agrument for multiples of runtime needed\n");
-		return 1;
-	}
 
 	
 	char * filename = argv[0];
@@ -362,7 +358,7 @@ int main(int argc, char *argv[])
   
 
 	
-  int rt_mul = atoi(argv[1]);
+  int rt_mul = 3;
 
 	  create_matrix(&A, M, P);
 	  create_matrix(&B, P, N);
@@ -396,7 +392,7 @@ int main(int argc, char *argv[])
 	  matmul_aware();
   }
 	
-  	rt_mul = atoi(argv[2]);
+  	rt_mul = 1;
 	
 	rep_count = 100*rt_mul;
 

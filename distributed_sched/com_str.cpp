@@ -38,10 +38,6 @@ inline double compute_fp(double in1, double in2)
 
 int main(int argc, char* argv[])
 {
-	if(argc!=2) {
-		printf("Agrument for multiples of runtime needed\n");
-		return 1;
-	}
 	
 	char * filename = argv[0];
 	int shmid1;
@@ -54,7 +50,7 @@ int main(int argc, char* argv[])
 	setup_timer();
         setup_papi();
 	
-	int rt_mul = atoi(argv[1]);
+	int rt_mul = 1;
 	
 	int rep_count = 100*rt_mul;
 
@@ -80,7 +76,7 @@ int main(int argc, char* argv[])
 
 	}
 	
-	rt_mul = atoi(argv[2]);
+	rt_mul = 1;
 
 	rep_count = 10*rt_mul;
 	for(int k=0; k<rep_count; k++)

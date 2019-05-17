@@ -6,3 +6,15 @@ perf STAT:  18713.52user 129.46system 8:23.04elapsed 3745%CPU
 cwro LINUX: 20356.92user 132.57system 10:06.24elapsed 3379%CPU
 cwro STAT:  18737.94user 126.45system 8:28.08elapsed 3712%CPU
 cwro DIST:  18226.37user 127.01system 8:23.57elapsed 3644%CPU
+
+
+new
+cwro DIST 13793.82user 53.60system 8:59.44elapsed
+cwro LINUX: 15605.22user 57.00system 10:16.77
+
+cwro linux 9583.67user 55.32system 4:08.81
+cwro DIST 8631.33user 53.21system 3:35.96elapsed 4021
+
+
+random dist 8631.31user 52.39system 3:35.83elapsed 402
+random linux 9670.21user 52.90system 4:09.32elapsed 
