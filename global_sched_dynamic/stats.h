@@ -8,7 +8,7 @@
 #define RECORD_STAT_QUANTUM 500000
 #define GLOBAL_SCHED_QUANTUM 500000
 
-enum program_type {UNKNOWN, STREAMING, LG_MATMUL, SM_MATMUL, COMPUTE}; 
+enum program_type {UNDETERMINED, STREAMING, LG_MATMUL, SM_MATMUL, COMPUTE, UNKNOWN}; 
 enum status {GOOD, BAD, WASTE};
 
 struct stats_struct
@@ -17,7 +17,7 @@ struct stats_struct
 	int64_t l2_cache_accesses;
 	int64_t num_instructions;
 	int64_t num_cycles;
-	int64_t num_vol_ctxt_switches;
+	//int64_t num_vol_ctxt_switches;
 
 
 	int32_t pid;
@@ -28,8 +28,9 @@ struct stats_struct
     program_type type;
     status stat; 
 
-    int32_t padding;
-
+    float mrate_h1;
+    float mrate_h2;
+    float mrate_h3;
 };
 
 struct core_write_struct
