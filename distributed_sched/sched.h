@@ -64,8 +64,8 @@ void * timer_interrupt(int intr)
 	  ptr->num_cycles = values[3];
   //}
 
-  printf("C-%ld Past L2 miss rate :%f \n", idx, ptr->past_l2_mr);
-  printf("C-%ld Curr L2 miss rate :%f \n", idx, (float)values[0]/(float)values[1]);
+  //printf("C-%ld Past L2 miss rate :%f \n", idx, ptr->past_l2_mr);
+  //printf("C-%ld Curr L2 miss rate :%f \n", idx, (float)values[0]/(float)values[1]);
 
   return NULL;
 }
